@@ -1,0 +1,81 @@
+[
+    { "command": "csscript_kills_script",  "id": "cs-script", "caption": "Kill running script" },
+    {
+
+        "caption": "CS-Script",
+        "id": "cs-script",
+        "children":
+        [
+            {
+                "command": "csscript_execute_and_wait",
+                "caption": "Execute"
+            },
+            {
+                "command": "csscript_execute_and_redirect",
+                "caption": "Execute (capture output)"
+            },
+            {
+                "caption": "-"
+            },
+            {
+                "command": "csscript_syntax_check",
+                "caption": "Check Syntax"
+            },
+            {
+                "command": "csscript_goto_definition",
+                "caption": "Go to Definition"
+            },
+            {
+                "command": "csscript_find_references",
+                "caption": "Find all references"
+            },
+            {
+                "command": "csscript_resolve_using",
+                "caption": "Add missing 'usings'"
+            },
+            {
+                "command": "csscript_format_code",
+                "caption": "Format"
+            },
+            {
+
+                "caption": "-"
+            },
+            {
+                "command": "csscript_build_exe",
+                "caption": "Build exe"
+            },
+            {
+                "caption": "-"
+            },
+            {
+                "caption": "Settings...",
+                "children":
+                [
+                    {
+                        "command": "csscript_show_config",
+                        "caption": "CS-Script Config"
+                    },
+                    {
+                        "command": "open_file",
+                        "args": { "file": "${packages}/User/cs-script.sublime-settings" },
+                        "caption": "Plugin Config"
+                    }
+                ]
+            },
+            {
+                "command": "csscript_help",
+                "caption": "Show Plugin Help"
+            },
+            {
+                "command": "csscript_css_help",
+                "caption": "Show CS-Script Help"
+            }
+             ,
+            {
+                "command": "csscript_about",
+                "caption": "About"
+            }
+        ]
+    }
+]

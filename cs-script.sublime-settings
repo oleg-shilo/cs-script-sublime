@@ -1,0 +1,12 @@
+{
+    "server_autostart": true,
+    "server_port": 18000,
+    "is_first_run": true,
+    "auto_trigger_autocomplete":true,
+    "auto_trigger_tooltip":true,
+    "auto_tooltip_light_content":true,
+    "error_strong_appearance": true,
+    "format_on_save": true,
+    "syntaxcheck_on_save": false,
+    "cscs_path": "./cscs.exe"
+}

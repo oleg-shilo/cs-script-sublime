@@ -1,0 +1,57 @@
+[
+    {
+        "caption": "cs-script: Execute",
+        "command": "csscript_execute_and_wait",
+    },
+    {
+        "caption": "cs-script: Execute (capture output)",
+        "command": "csscript_execute_and_redirect",
+    },
+    {
+        "caption": "cs-script: Build exe",
+        "command": "csscript_build_exe",
+    },
+    {
+        "caption": "cs-script: Check Syntax",
+        "command": "csscript_syntax_check",
+    },
+    {
+        "caption": "cs-script: Go to Definition",
+        "command": "csscript_goto_definition",
+    },
+    {
+        "caption": "cs-script: Find all references",
+        "command": "csscript_find_references",
+    },
+    {
+        "caption": "cs-script: Add missing 'usings'",
+        "command": "csscript_resolve_using",
+    },
+    {
+        "caption": "cs-script: Format",
+        "command": "csscript_format_code",
+    },
+    {
+        "caption": "cs-script: Show CS-Script project",
+        "command": "csscript_load_proj",
+    }
+
+    // {
+    //     "caption": "cs-script: CS-Script Config",
+    //     "command": "csscript_show_config",
+    // },
+    // {
+    //     "caption": "cs-script: Plugin Config",
+    //     "command": "open_file",
+    //     "args": { "file": "${packages}/User/cs-script.sublime-settings" },
+    // },
+    // {
+    //     "caption": "cs-script: Show Help",
+    //     "command": "csscript_help",
+    // }
+    //  ,
+    // {
+    //     "caption": "cs-script: About",
+    //     "command": "csscript_about",
+    // }
+]
