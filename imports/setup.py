@@ -35,11 +35,11 @@ class csscript_setup(sublime_plugin.EventListener):
     # ----------------- 
     def get_sysconfig_description():
         template = """
-** Required minimum system configuration: **
+**Required minimum system configuration:**
  * {req_clr}
  * CS-Script:  v3.19
 
-** Detected system configuration: **
+**Detected system configuration:**
   * {det_clr}
   * {det_css}
 {clr_install}"""
