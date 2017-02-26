@@ -4,17 +4,11 @@ CS-Script (C# intellisense) plugin for Sublime Text 3
 The true C# intellisense solution based on CS-Script and Roslyn.
 
 *******************************************************
+**Required minimum system configuration:**
 
-** Required minimum system configuration: **
- * .NET:       v4.0/4.5
- * CS-Script:  v3.19
-
-** Detected system configuration: **
-  * .NET:       v4.0.30319.42000
-  * CS-Script:  v3.24.0.0
- 
+.NET: v4.0/4.5
+CS-Script: v3.19
 *******************************************************
-
 ## BACKGROUND
 
 ### _Plugin_ 
@@ -41,7 +35,7 @@ This means that on Windows the plugin (just out of box) will only support C# 5 s
 
 2. _Configuration_<br>
 set `useAlternativeCompiler: %CSSCRIPT_DIR%\lib\CSSCodeProvider.v4.6.DLL` with <br>
-ContextMenu -> CS-Script -> Settings -> CS-Script Config 
+ContextMenu > CS-Script > Settings > CS-Script Config 
 
 
 ### C# scripting with Sublime
@@ -105,7 +99,7 @@ void main(string[] args)
 ``` 
 Note, implicit referencing is only available on Windows (nature of .NET). On all other platforms the assemblies need to be referenced explicitly.
 
-You can avoid referencing the most common assemblies in every script by setting them as default referenced assemblies in the CS-Script config file (ContextMenu -> CS-Script -> Settings -> CS-Script Config). 
+You can avoid referencing the most common assemblies in every script by setting them as default referenced assemblies in the CS-Script config file (ContextMenu > CS-Script > Settings > CS-Script Config). 
 
 #### Referencing NuGet packages
 .NET offers alternative way of referencing assemblies - by referencing NuGet packages (similar to RubyGems). CS-Script allows a single step referencing for the packages with a dedicated directive:  
@@ -144,7 +138,7 @@ The plugin allows script execution directly from the editor. Just have your scri
 When referencing any external dependencies (e.g. scripts, assemblies) from the script, the script engine tries locate the dependency file in the "probing directories". These directories are:
 - Script location
 - Current directory
-- Search directories from CS-Script config file (ContextMenu -> CS-Script -> Settings -> CS-Script Config).
+- Search directories from CS-Script config file (ContextMenu > CS-Script > Settings > CS-Script Config).
 - Search directories defined in the script with `//css_dir` directive.
 
 `//css_dir` directive is a convenient way to define a script specific locations. It supports environment variables as well as absolute and relative paths:
@@ -222,7 +216,7 @@ searcDir: E:\Dev
 
 #### Global configuration
 The plugin behavior can be adjusted in the usual way as for all other Sublime plugins by editing the settings files.
-And for the CS-Script settings can be accessed via context menu: CS-Script -> Settings -> CS-Script Config   
+And for the CS-Script settings can be accessed via context menu: CS-Script > Settings > CS-Script Config   
 
 #### Building executables
 CS-Script allows converting a script into a self-sufficient executable. It is in fact quite straightforward process. CS-Script is not an interpreter as many other scripting solution but an execution environment, which converts C# (or VB) file into assembly on-fly. And as long as the assembly is compiled as an executable it can be executed on its own without the need for the script engine any more. 
