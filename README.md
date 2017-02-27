@@ -279,23 +279,30 @@ The pluging settings can be accessed via Preferences > Package Settings > CS-Scr
 These are the settings values that can help to adjust the user experience according your preferences:
 
 - auto_trigger_autocomplete 
+
 Controls automatic triggering completion suggestion on typing '.' after a word.
 
 - auto_trigger_tooltip
+
 Controls automatic triggering member/signature tooltip suggestion on typing '(' after a word.
 
 - auto_tooltip_light_content
+
 Indicates if the automatic tooltip should have lighter appearance comparing to the tooltip triggered by hovering over the word. Useful to make the tooltip less obstructive by omitting some of the tooltip content.
 
 - error_strong_appearance
+
 All syntax errors by default are highlighted ST3 error scope style. Using this setting can soften the appearance of the error(s) 
 
 - format_on_save
+
 Format the code on saving.
 
 - syntaxcheck_on_save
+
 Check code syntax on saving.
 
 - 'server_port'
+
 The plugin communicates with the Syntaxer (module responsible for C# syntax parsing) via local socket (localhost:18000). If for whatever reason the port choice is no appropriate/convenient you can change it by adjusting this setting. If you do so you will need to restart Sublime. 
 
