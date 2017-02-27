@@ -1,14 +1,16 @@
 # CS-Script.ST3
 
 CS-Script (C# intellisense) plugin for Sublime Text 3
-The true C# intellisense solution based on CS-Script and Roslyn.
+The true C# intellisense and script execution solution based on CS-Script and Roslyn. 
 
 *******************************************************
+
 **Required minimum system configuration:**
-
-.NET: v4.0/4.5
-CS-Script: v3.19
+ * .NET:       v4.0/4.5
+ * CS-Script:  v3.19
+ 
 *******************************************************
+
 ## BACKGROUND
 
 ### _Plugin_ 
@@ -251,11 +253,11 @@ Invoked by shortcut `F8` or via context menu. It formats the code code according
 The help resources are available in form of plugin documentation and online. Use either context menu to open either plugin or CS-Script help file. For the online documentation see CS-Script GitHub Wiki: https://github.com/oleg-shilo/cs-script/wiki.
 
 #### CLI
-The plugin provides access only to the part of the CS-Script functionality. If you need to to access the features that are not exposed via the plugin interface (e.g. converting script into assembly/dll) you may want to use CS-Script command line interface (CLI) from the terminal. Command-prompt on Windows and BAsh on Linux.  
-https://github.com/oleg-shilo/cs-script/wiki/CLI---User-Guide
+The plugin provides access only to the part of the CS-Script functionality. If you need to to access the features that are not exposed via the plugin interface (e.g. converting script into assembly/dll) you may want to use CS-Script command line interface (CLI) from the terminal. Command-prompt on Windows and Bash on Linux. Sublime has quite a few plugins for integrating terminal with the editor. One of them "Terminal" seems to be quite fit for the task.
+The CS-Script CLI user guide can be found here: https://github.com/oleg-shilo/cs-script/wiki/CLI---User-Guide
 
 #### Plugin config
-The plugin settings can be accessed via Preferences -> Package Settings -> CS-Script.
+The pluging settings can be accessed via Preferences > Package Settings > CS-Script.
 
 These are the settings values that can help to adjust the user experience according your preferences:
 
@@ -277,4 +279,6 @@ Format the code on saving.
 - syntaxcheck_on_save
 Check code syntax on saving.
 
+- 'server_port'
+The plugin communicates with the Syntaxer (module responsible for C# syntax parsing) via local socket (localhost:18000). If for whatever reason the port choice is no appropriate/convenient you can change it by adjusting this setting. If you do so you will need to restart Sublime. 
 
