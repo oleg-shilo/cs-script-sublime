@@ -15,7 +15,7 @@
                             {
                                 "command": "open_file",
                                 "args": {
-                                    "file": "${packages}/cs-script/cs-script.sublime-settings"
+                                    "file": "${packages}/cs-script-sublime/cs-script.sublime-settings"
                                 },
                                 "caption": "Settings – Default"
                             },
@@ -32,7 +32,7 @@
                             {
                                 "command": "open_file",
                                 "args": {
-                                    "file": "${packages}/cs-script/Default.sublime-keymap"
+                                    "file": "${packages}/cs-script-sublime/Default.sublime-keymap"
                                 },
                                 "caption": "Key Bindings – Default"
                             },

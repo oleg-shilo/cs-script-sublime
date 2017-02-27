@@ -31,7 +31,6 @@ class CodeViewTextCommand(sublime_plugin.TextCommand):
         else:
             return True
 
-
 # -------------------------
 def settings():
     return sublime.load_settings("cs-script.sublime-settings")
@@ -39,11 +38,12 @@ def settings():
 def save_settings():
     return sublime.save_settings("cs-script.sublime-settings")
 # -------------------------
-    
-plugin_dir = os.path.dirname(__file__)
 
-bin_src = path.join(plugin_dir, 'bin')
+plugin_dir = os.path.dirname(__file__)
+plugin_name = path.basename(plugin_dir)
+
 bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script.bin'+ os.sep)
+bin_src = path.join(plugin_dir, 'bin')
 
 def deploy_shadow_bin(file_name):
     if not path.exists(bin_dest): 
@@ -75,23 +75,25 @@ else:
         os.remove(src)
 
 
-# csscriptApp = deploy_shadow_bin('cscs.exe')
+deploy_shadow_bin('cscs.exe')
 csscriptApp = None
 syntaxerApp = deploy_shadow_bin('syntaxer.exe')
 syntaxerPort = settings().get('server_port', 18000)
 
-# print(settings().get('cscs_path', './cscs.exe')
-
 def read_engine_config():
     global csscriptApp
+    
+    deployment_dir = bin_src
+    deployment_dir = bin_dest
+
     cscs_path = settings().get('cscs_path', './cscs.exe')
 
     if cscs_path == None:
-        cscs_path = csscriptApp = path.join(bin_src, 'cscs.exe')
+        cscs_path = csscriptApp = path.join(deployment_dir, 'cscs.exe')
 
     elif cscs_path:
         if cscs_path == './cscs.exe':
-            csscriptApp = path.join(bin_src, 'cscs.exe')
+            csscriptApp = path.join(deployment_dir, 'cscs.exe')
         else:
             csscriptApp = os.path.abspath(os.path.expandvars(cscs_path))
 
@@ -727,6 +729,7 @@ class csscript_syntax_check(CodeViewTextCommand):
     # -----------------
     def show_errors():
         error_strong_appearence = settings().get('error_strong_appearence', False)
+        error_strong_appearence = True
         for file in csscript_syntax_check.errors.keys(): 
             view = find_file_view(file)
             if view:
@@ -742,7 +745,8 @@ class csscript_syntax_check(CodeViewTextCommand):
                 # https://www.sublimetext.com/docs/3/scope_naming.html
                 # http://docs.sublimetext.info/en/latest/reference/color_schemes.html
                 scope = 'invalid'
-                icon = 'Packages/cs-script/images/error.png'
+                icon = 'Packages/'+plugin_name+'/images/error.png'
+                # icon = 'Packages/cs-script-sublime/images/error.png'
                 if error_strong_appearence:
                     flags = 0
                 else:
