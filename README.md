@@ -11,6 +11,23 @@ The true C# intellisense and script execution solution based on CS-Script and Ro
  
 *******************************************************
 
+## Installation
+
+Note the plugin was developed and tested against ST3 but not ST2.
+
+*__Package Control__*
+
+The plugin is yet to be submitted to the Package Control. 
+
+*__Manual__*
+
+* Remove the package, if installed, using Package Control.
+* Add a repository: `https://github.com/oleg-shilo/cs-script-sublime.git`
+* Install `cs-script-sublime` with Package Control. 
+* Restart Sublime editor if required
+
+You can also install the plugin by cloning `cs-script-sublime` repository into your Packages folder or manually placing the download package there.
+
 ## BACKGROUND
 
 ### _Plugin_ 
