@@ -41,6 +41,7 @@ def save_settings():
 plugin_dir = os.path.dirname(__file__)
 plugin_name = path.basename(plugin_dir)
 
+new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script.bin', 'new_script.cs')
 bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script.bin'+ os.sep)
 bin_src = path.join(plugin_dir, 'bin')
 
@@ -98,13 +99,15 @@ def read_engine_config():
 
 read_engine_config()
 
-print('----------------')
-print('cscs.exe: ', csscriptApp)
-print('syntaxer.exe: ', syntaxerApp)
-print('syntaxer port: ', syntaxerPort) 
-print('syntaxcheck_on_save: ', settings().get('syntaxcheck_on_save', True)) 
-print('server_autostart: ', settings().get('server_autostart', True)) 
-print('----------------')
+def print_config():
+    print('----------------')
+    print('cscs.exe: ', csscriptApp)
+    print('syntaxer.exe: ', syntaxerApp)
+    print('syntaxer port: ', syntaxerPort) 
+    print('syntaxcheck_on_save: ', settings().get('syntaxcheck_on_save', True)) 
+    print('server_autostart: ', settings().get('server_autostart', True)) 
+    print('----------------')
+
 # -------------------------  
 from .imports.utils import *  
 from .imports.syntaxer import *
@@ -160,6 +163,25 @@ def mark_as_formatted(view):
     formatted_views[view.id()] = time.time()
 
 # =================================================================================
+# C#/CS-Script pugin "new script" service
+# =================================================================================
+class csscript_new(sublime_plugin.TextCommand):
+    # -----------------
+    def run(self, edit):
+        with open(new_file_path, "w") as file: 
+            file.write('using System;\n')
+            file.write('\n')
+            file.write('class Script\n')
+            file.write('{\n')
+            file.write('    static void Main(string[] args)\n')
+            file.write('    {\n')
+            file.write('        Console.WriteLine("Hello...");\n')
+            file.write('    }\n')
+            file.write('}')
+                    
+        if os.path.exists(new_file_path):
+            sublime.active_window().open_file(new_file_path)
+# =================================================================================
 # C#/CS-Script pugin help service
 # =================================================================================
 class csscript_help(sublime_plugin.TextCommand):
@@ -194,6 +216,8 @@ class settings_listener(sublime_plugin.EventListener):
             os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(syntaxerPort)
             settings().add_on_change("cscs_path", self.callback)
             settings().add_on_change("server_port", self.on_port_changed)
+
+            print_config()
 
     def on_port_changed(self):
         global syntaxerPort

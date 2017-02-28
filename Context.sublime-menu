@@ -7,6 +7,10 @@
         "children":
         [
             {
+                "command": "csscript_new",
+                "caption": "New script"
+            },
+            {
                 "command": "csscript_execute_and_wait",
                 "caption": "Execute"
             },
