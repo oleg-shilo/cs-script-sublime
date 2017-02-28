@@ -168,9 +168,20 @@ def mark_as_formatted(view):
 class csscript_new(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
+        backup_file = None
+        if os.path.exists(new_file_path):
+            backup_file = new_file_path+'.bak'
+            if os.path.exists(backup_file):
+                os.remove(backup_file)
+            os.rename(new_file_path, backup_file)
+
         with open(new_file_path, "w") as file: 
             file.write('using System;\n')
-            file.write('\n')
+            if backup_file:
+                file.write('// The previous content of this file has been saved into \n')
+                file.write('// '+backup_file+' \n')
+            else:
+                file.write('\n')
             file.write('class Script\n')
             file.write('{\n')
             file.write('    static void Main(string[] args)\n')

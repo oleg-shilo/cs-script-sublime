@@ -3,6 +3,7 @@ import io
 import codecs
 import sys
 import sublime
+import platform
 import sublime_plugin
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
@@ -26,12 +27,15 @@ syntaxerPort = 18000
 # intellisense queries
 # =================================================================================
 def is_linux():
-    return os.name == 'posix'
+    return os.name == 'posix' and platform.system() == 'Linux'
+
+def is_mac():
+    return os.name == 'posix' and platform.system() == 'Darwin'
 # -----------------
 def to_args(args):
     # excellent discussion about why popen+shell doesn't work on Linux
     # http://stackoverflow.com/questions/1253122/why-does-subprocess-popen-with-shell-true-work-differently-on-linux-vs-windows
-    if is_linux():
+    if is_linux() and not is_mac():
         result = ''
 
         if args[0].endswith('cscs.exe') or args[0].endswith('syntaxer.exe'):
