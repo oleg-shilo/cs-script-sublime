@@ -799,12 +799,9 @@ class csscript_kills_script(sublime_plugin.TextCommand):
             return False            
     # -----------------
     def run(self, edit):
-        line_region = self.view.line(self.view.text_point(2, 0))
-        line = self.view.substr(line_region)
-
-        if line.startswith('[Started pid: ') and csscript_execute_and_redirect.running_process:
+        if csscript_execute_and_redirect.running_process:
             try:
-                pid = int(line.replace('[Started pid: ','').replace(']',''))
+                pid = csscript_execute_and_redirect.running_process.pid
 
                 sublime.status_message('Terminating...')
                 

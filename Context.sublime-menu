@@ -11,6 +11,9 @@
                 "caption": "New script"
             },
             {
+                "caption": "-"
+            },
+            {
                 "command": "csscript_execute_and_wait",
                 "caption": "Execute"
             },

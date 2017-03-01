@@ -19,7 +19,7 @@ out_panel = 'CS-Script'
 
 plugin_dir = path.dirname(path.dirname(__file__))
 csscriptApp = path.join(plugin_dir, 'bin', 'cscs.exe')
-syntaxerApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script.bin','syntaxer.exe')
+syntaxerApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script','syntaxer.exe')
 syntaxerPort = 18000
 
 # =================================================================================
@@ -280,6 +280,10 @@ def run_cscs(args, handle_line, on_done=None, header=None):
 def clear_and_print_result_header(curr_doc):
     output_view_show(out_panel)
     output_view_clear(out_panel)
-    output_view_write_line(out_panel, 'Script: '+ curr_doc)
-    output_view_write_line(out_panel, "------------------------------------------------------------------------")
+
+    simple_output_header = sublime.load_settings("cs-script.sublime-settings").get('simple_output_header', False)
+    
+    if not simple_output_header:
+        output_view_write_line(out_panel, 'Script: '+ curr_doc)
+        output_view_write_line(out_panel, "------------------------------------------------------------------------")
 
