@@ -41,8 +41,8 @@ def save_settings():
 plugin_dir = os.path.dirname(__file__)
 plugin_name = path.basename(plugin_dir)
 
-new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script.bin', 'new_script.cs')
-bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script.bin'+ os.sep)
+new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'new_script.cs')
+bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script'+ os.sep)
 bin_src = path.join(plugin_dir, 'bin')
 
 def deploy_shadow_bin(file_name):
@@ -175,25 +175,20 @@ class csscript_new(sublime_plugin.TextCommand):
                 os.remove(backup_file)
             os.rename(new_file_path, backup_file)
 
+        backup_comment = ''
+        if backup_file:
+            backup_comment = '// The previous content of this file has been saved into \n' + \
+                             '// '+backup_file+' \n'
+        
+        content = csscript_setup.prepare_new_script().replace('$backup_comment$', backup_comment)
+
         with open(new_file_path, "w") as file: 
-            file.write('using System;\n')
-            if backup_file:
-                file.write('// The previous content of this file has been saved into \n')
-                file.write('// '+backup_file+' \n')
-            else:
-                file.write('\n')
-            file.write('class Script\n')
-            file.write('{\n')
-            file.write('    static void Main(string[] args)\n')
-            file.write('    {\n')
-            file.write('        Console.WriteLine("Hello...");\n')
-            file.write('    }\n')
-            file.write('}')
+            file.write(content)
                     
         if os.path.exists(new_file_path):
             sublime.active_window().open_file(new_file_path)
 # =================================================================================
-# C#/CS-Script pugin help service
+# C#/CS-Script plugin help service
 # =================================================================================
 class csscript_help(sublime_plugin.TextCommand):
     # -----------------

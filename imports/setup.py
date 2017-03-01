@@ -16,8 +16,8 @@ from .utils import *
 from .syntaxer import *
 # -------------------------
 plugin_dir = path.dirname(path.dirname(__file__))
-# csscriptApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script.bin','cscs.exe')
-# syntaxerApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script.bin','syntaxer.exe')
+# csscriptApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script','cscs.exe')
+# syntaxerApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script','syntaxer.exe')
 
 def settings():
     return sublime.load_settings("cs-script.sublime-settings")
@@ -181,6 +181,31 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
             settings().set('last_run_version', csscript_setup.version)
             save_settings()
     # -----------------
+    def prepare_new_script():
+        template_file = os.path.join(plugin_dir, '..', 'User', 'cs-script', 'new_script.tmpl')
+        
+        template = 'using System;\n'
+        template = template + '$backup_comment$\n'
+        template = template + 'class Script\n'
+        template = template + '{\n'
+        template = template + '    static void Main(string[] args)\n'
+        template = template + '    {\n'
+        template = template + '        Console.WriteLine("Hello...");\n'
+        template = template + '    }\n'
+        template = template + '}'
+
+        if not os.path.exists(template_file):
+            with open(template_file, "w") as f: 
+                f.write(template)
+
+        try:
+            with open(template_file, "r") as f: 
+                template = f.read()
+        except:
+            pass
+
+        return template
+    # -----------------
     def show_readme(self):
         # print('csscript_help')
         # sublime.error_message('Readme.md')
@@ -196,6 +221,7 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
             templete = f.read()
 
         content = templete.replace('{SYS_REQ}', csscript_setup.get_sysconfig_description())    
+
 
         with open(readme, "w") as f: 
             f.write(content)

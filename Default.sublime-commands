@@ -1,5 +1,9 @@
 [
     {
+        "caption": "cs-script: New script",
+        "command": "csscript_new",
+    },
+    {
         "caption": "cs-script: Execute",
         "command": "csscript_execute_and_wait",
     },
