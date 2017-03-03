@@ -18,6 +18,8 @@ if sys.version_info < (3, 3):
     raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
 
 # -------------------------
+is_mac = (os.name == 'posix' and platform.system() == 'Darwin')
+
 def settings():
     return sublime.load_settings("cs-script.sublime-settings")
 
@@ -27,7 +29,6 @@ def save_settings():
 def on_plugin_loaded():
     # on Mac the path to mono is not added to envar PATH
     # so need to probe for it
-    is_mac = (os.name == 'posix' and platform.system() == 'Darwin')
 
     if is_mac:
         mono_path = settings().get('mono_path', None)
@@ -1065,6 +1066,10 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
     running_process = None
     # -----------------
     def run(self, edit):
+        if is_mac:
+            sublime.error_message('On Mac you will need to start terminal manually and execute "mono cscs.exe <script path>"')
+            return
+
         if csscript_execute_and_redirect.running_process:
             print("Previous C# script is still running...")
             return
