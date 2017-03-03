@@ -8,6 +8,8 @@ import subprocess
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
+plugin_dir = path.dirname(path.dirname(__file__))
+
 # =================================================================================
 # Sublime utils
 # =================================================================================
@@ -146,7 +148,7 @@ def clear_console():
 # -----------------
 def to_text_pos(text, location):
     # For text position ST always ignores '\r' while file can have it 
-    # May need to be reorked to support Mac
+    # May need to be reworked to support Mac
     pos = 0
     count = 0
     while pos != -1:
@@ -190,6 +192,19 @@ def is_valid_selection(view):
         return False
     else:    
         return True        
+# -----------------
+def which(file):
+    try:
+        out_file = os.path.join(plugin_dir, 'which.txt')
+
+        with open(out_file, "w") as f: 
+            popen_redirect_tofile(['which', file], f).wait()
+
+        with open(out_file, "r") as f:
+            return f.read()
+
+    except Exception as e:
+        print('Cannot execute "which" for '+file+'.', e)
 # -----------------
 def normalize(file, line, column): 
     if file.endswith(".g.csx") or file.endswith(".g.cs") and "CSSCRIPT\\Cache" in file:

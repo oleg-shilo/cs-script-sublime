@@ -16,7 +16,32 @@ version = '1.0.1.0'
 
 if sys.version_info < (3, 3):
     raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
-    
+
+# -------------------------
+def settings():
+    return sublime.load_settings("cs-script.sublime-settings")
+
+def save_settings():
+    return sublime.save_settings("cs-script.sublime-settings")
+# -------------------------
+def on_plugin_loaded():
+    # on Mac the path to mono is not added to envar PATH
+    # so need to probe for it
+    is_mac = (os.name == 'posix' and platform.system() == 'Darwin')
+
+    if is_mac:
+        mono_path = settings().get('mono_path', None)
+
+        if not mono_path:
+            if path.exists('/usr/local/bin/mono'):
+                mono_path = '/usr/local/bin'
+            else:
+                mono_path = which("mono")
+        
+        if mono_path:
+            print('Adding mono path to envar PATH.', mono_path)
+            os.environ["PATH"] += os.pathsep + mono_path
+
 class CodeViewTextCommand(sublime_plugin.TextCommand):
     # -----------------
     def is_enabled(self):
@@ -30,12 +55,6 @@ class CodeViewTextCommand(sublime_plugin.TextCommand):
         else:
             return True
 
-# -------------------------
-def settings():
-    return sublime.load_settings("cs-script.sublime-settings")
-
-def save_settings():
-    return sublime.save_settings("cs-script.sublime-settings")
 # -------------------------
 
 plugin_dir = os.path.dirname(__file__)
@@ -218,6 +237,9 @@ class settings_listener(sublime_plugin.EventListener):
     def on_activated(self, view):
         if not settings_listener.hooked:
             settings_listener.hooked = True
+            
+            on_plugin_loaded()
+
             self.callback()
             os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(syntaxerPort)
             settings().add_on_change("cscs_path", self.callback)
