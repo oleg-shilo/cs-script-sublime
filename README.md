@@ -11,6 +11,10 @@ The true C# intellisense and script execution solution based on CS-Script and Ro
  
 *******************************************************
 
+![](images/cs-s_new.gif)
+
+_More screenshots are at the end of the page._
+
 ## Installation
 
 Note the plugin was developed and tested against ST3 but not ST2.
@@ -278,7 +282,7 @@ The pluging settings can be accessed via Preferences > Package Settings > CS-Scr
 
 These are the settings values that can help to adjust the user experience according your preferences:
 
-- auto_trigger_autocomplete <br>  
+- auto_trigger_autocomplete <br>
 Controls automatic triggering completion suggestion on typing '.' after a word.
 
 - auto_trigger_tooltip <br>
@@ -298,4 +302,18 @@ Check code syntax on saving.
 
 - 'server_port' <br>
 The plugin communicates with the Syntaxer (module responsible for C# syntax parsing) via local socket (localhost:18000). If for whatever reason the port choice is no appropriate/convenient you can change it by adjusting this setting. If you do so you will need to restart Sublime. 
+
+----
+_Finding a symbol definition_
+![](images/cs-s_godef.gif)
+
+_Finding all references to a symbol under the cursor._
+![](images/cs-s_refs.gif)
+
+_Formatting code_
+![](images/cs-s_add_format.gif)
+
+_Automatically adding missing `using` directives._
+![](images/cs-s_add_usings.gif)
+
 
