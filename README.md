@@ -32,6 +32,8 @@ The plugin is yet to be submitted to the Package Control.
 
 You can also install the plugin by cloning `cs-script-sublime` repository into your Packages folder or manually placing the download package there.
 
+Mac users may need to do one extra step - read these [instructions](https://github.com/oleg-shilo/cs-script-sublime/wiki).
+
 ## BACKGROUND
 
 ### _Plugin_ 
