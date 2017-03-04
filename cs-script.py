@@ -18,7 +18,6 @@ if sys.version_info < (3, 3):
     raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
 
 # -------------------------
-is_mac = (os.name == 'posix' and platform.system() == 'Darwin')
 
 def settings():
     return sublime.load_settings("cs-script.sublime-settings")
@@ -27,10 +26,30 @@ def save_settings():
     return sublime.save_settings("cs-script.sublime-settings")
 # -------------------------
 def on_plugin_loaded():
+    def which(file):
+        try:
+            out_file = os.path.join(plugin_dir, "..", "User", 'which.txt')
+
+            with open(out_file, "w") as f: 
+                popen_redirect_tofile(['which', file], f).wait()
+
+            output = None    
+            with open(out_file, "r") as f:
+                output =  f.read().strip()
+
+            if os.path.exists(out_file):
+                os.remove(out_file)
+            
+            return output
+
+        except Exception as e:
+            print('Cannot execute "which" for '+file+'.', e)
+
     # on Mac the path to mono is not added to envar PATH
     # so need to probe for it
 
-    if is_mac:
+    if is_mac():
+
         mono_path = settings().get('mono_path', None)
 
         if not mono_path:
@@ -1298,115 +1317,3 @@ class csscript_show_output_panel(sublime_plugin.WindowCommand):
             output_view_hide(out_panel)
         else:
             output_view_show(out_panel)
-# _________________________________________________________________________________
-
-
-
-
-
-
-
-
-# =================================================================================
-# CS-Script dev experiment service for testing algorithms during development
-# =================================================================================
-class csscript_experiment(sublime_plugin.WindowCommand):
-    # -----------------    
-    def run(self, edit):
-       
-        # LAYOUT_INLINE
-        # LAYOUT_BELOW
-        # LAYOUT_BLOCK
-
-        stylesheet = '''
-            <style>
-                div.error {
-                    padding: 0.4rem 0 0.4rem 0.7rem;
-                    margin: 0.2rem 0;
-                    border-radius: 2px;
-                }
-
-                div.error span.message {
-                    padding-right: 0.7rem;
-                }
-
-                div.error a {
-                    text-decoration: inherit;
-                    padding: 0.35rem 0.7rem 0.45rem 0.8rem;
-                    position: relative;
-                    bottom: 0.05rem;
-                    border-radius: 0 2px 2px 0;
-                    font-weight: bold;
-                }
-                html.dark div.error a {
-                    background-color: #00000018;
-                }
-                html.light div.error a {
-                    background-color: #ffffff18;
-                }
-            </style>
-        '''
-        phantom_set = sublime.PhantomSet(view, "exec")
-        phantoms = []
-        pt = view.text_point(255-1, 28-1)
-        phantoms.append(sublime.Phantom(
-                    sublime.Region(pt, view.line(pt).b),
-                    ('<body id=inline-error>' + stylesheet +
-                        '<div class="error">' +
-                        '<span class="message">' + html.escape('error1', quote=False) + '</span>' +
-                        '<a href=hide>' + chr(0x00D7) + '</a></div>' +
-                        '</body>'),
-                    sublime.LAYOUT_BELOW,
-                    on_navigate=self.on_phantom_navigate))
-
-        pt2 = view.text_point(267-1, 32-1)
-
-        phantoms.append(sublime.Phantom(
-
-                    sublime.Region(pt2, view.line(pt2).b),
-                    ('<body id=inline-error>' + stylesheet +
-                        '<div class="error">' +
-                        '<span class="message">' + html.escape('error2', quote=False) + '</span>' +
-                        '<a href=hide>' + chr(0x00D7) + '</a></div>' +
-                        '</body>'),
-                    sublime.LAYOUT_BELOW,
-                    on_navigate=self.on_phantom_navigate))
-    
-        phantom_set.update(phantoms)
-        print("Done with phantoms")
-        # return
-        text = "~"
-        ph = ('<body id=inline-error>' + stylesheet +
-                        '<div class="error">' +
-                        '<span class="message">' + html.escape(text, quote=False) + '</span>' +
-                        '<a href=hide>' + chr(0x00D7) + '</a></div>' +
-                        '</body>')
-        view.add_phantom("test", view.sel()[0], ph, sublime.LAYOUT_BELOW)
-
-        # print(view.settings().get('syntax'))
-        
-        # works
-        # custom styling
-        # http://stackoverflow.com/questions/25373059/customize-sublime-text-3-bracket-highlighter-colors
-        v = view
-        v = sublime.active_window().active_view()
-        # v.add_regions("hello", [view.sel()], "invalid","dot", sublime.DRAW_SQUIGGLY_UNDERLINE|sublime.DRAW_NO_FILL|sublime.DRAW_NO_OUTLINE)
-        # v.add_regions("hello", [sublime.Region(0,v.size())], "invalid","dot", sublime.DRAW_SQUIGGLY_UNDERLINE|sublime.DRAW_NO_FILL|sublime.DRAW_NO_OUTLINE)
-
-        start = view.sel()[0].b
-        print(start)
-        v.add_regions("hello", [view.sel()[0]], "invalid","bookmark", sublime.DRAW_SQUIGGLY_UNDERLINE|sublime.DRAW_NO_FILL|sublime.DRAW_NO_OUTLINE)
-
-
-        output_view_show(out_panel)
-
-def on_phantom_navigate(self, url):
-    print('hide phantoms')
-
-# for future use 
-def get_syntax_errors(view):
-    if  not hasattr(view, 'syntax_errors'):
-        view.syntax_errors = {}
-        return None
-    return view.syntax_errors
-

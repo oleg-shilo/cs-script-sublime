@@ -193,19 +193,6 @@ def is_valid_selection(view):
     else:    
         return True        
 # -----------------
-def which(file):
-    try:
-        out_file = os.path.join(plugin_dir, 'which.txt')
-
-        with open(out_file, "w") as f: 
-            popen_redirect_tofile(['which', file], f).wait()
-
-        with open(out_file, "r") as f:
-            return f.read()
-
-    except Exception as e:
-        print('Cannot execute "which" for '+file+'.', e)
-# -----------------
 def normalize(file, line, column): 
     if file.endswith(".g.csx") or file.endswith(".g.cs") and "CSSCRIPT\\Cache" in file:
         dir = os.path.dirname(file)
