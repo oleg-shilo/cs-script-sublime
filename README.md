@@ -13,7 +13,7 @@ The true C# intellisense and script execution solution based on CS-Script and Ro
 
 ![](images/cs-s_new.gif)
 
-_This page is a light version of the complete overview of the complete plugin functionality, which can be found on [Wiki](https://github.com/oleg-shilo/cs-script-sublime/wiki). This includes_
+_This page is a light version of the complete overview of the plugin full functionality, which can be found on [Wiki](https://github.com/oleg-shilo/cs-script-sublime/wiki). This includes_
  * _Detailed description of CS-Script functionality_
  * _Support for C# 6 on Windows_
  * _Notes on deployment on OS X_
