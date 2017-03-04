@@ -1,6 +1,6 @@
 # CS-Script.ST3
 
-CS-Script (C# intellisense) plugin for Sublime Text 3
+CS-Script (C# intellisense) plugin for Sublime Text 3. 
 The true C# intellisense and script execution solution based on CS-Script and Roslyn. It is a port/rework of the popular Notepad++ plugin [CS-Script.Npp](https://csscriptnpp.codeplex.com/). 
 
 *******************************************************
