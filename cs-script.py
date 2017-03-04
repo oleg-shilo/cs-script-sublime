@@ -1085,7 +1085,7 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
     running_process = None
     # -----------------
     def run(self, edit):
-        if is_mac:
+        if is_mac():
             sublime.error_message('On Mac you will need to start terminal manually and execute "mono cscs.exe <script path>"')
             return
 
