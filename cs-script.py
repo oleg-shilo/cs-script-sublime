@@ -106,6 +106,8 @@ if os.name == 'nt':
     src = path.join(bin_src, 'nuget.win.exe')
     dest = path.join(bin_src, 'nuget.exe')
     if path.exists(src):
+        if path.exists(dest):
+            os.remove(dest)
         os.rename(src, dest)
 
 else: 
