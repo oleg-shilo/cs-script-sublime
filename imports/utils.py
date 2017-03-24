@@ -17,7 +17,8 @@ def get_output_view(name):
     view = sublime.active_window().find_output_panel(name)
     if not view:
         view = sublime.active_window().create_output_panel(name)
-        view.assign_syntax('Packages/C#/C#.tmLanguage')
+        view.assign_syntax('Packages/C#/Build.tmLanguage')
+        # view.assign_syntax('Packages/Batch File/Batch File.tmLanguage')
         # view.assign_syntax('Packages/Text/Plain text.tmLanguage')
     return view
 # -----------------
@@ -114,10 +115,11 @@ def active_primary_view():
     return None
 # -----------------
 def is_output_panel(view):
+    
     # return view == sublime.active_window().active_panel() # not reliable
-    if view== sublime.active_window().find_output_panel('exec'):
+    if view == sublime.active_window().find_output_panel('exec'):
         return True
-
+        
     return view.file_name() == None and view.name() == ''
 
 # -----------------
@@ -259,6 +261,7 @@ class TerminalSelector():
 def navigate_to_file_ref(reference):
     # e:\script.cs(20,7): error CS1002: ; expected
     # file: e:\script.cs
+    print('navigating........')
     if reference.startswith('file:'):
         reference = reference.replace('file:', '').strip()
 
