@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.0.1.0'
+version = '1.0.3.0'
 
 if sys.version_info < (3, 3):
     raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
