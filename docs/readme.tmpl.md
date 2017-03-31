@@ -7,6 +7,10 @@ The true C# intellisense solution based on CS-Script and Roslyn.
 {SYS_REQ} 
 *******************************************************
 
+### _Release notes v1.0.3_ 
+* All CS-Script related key bindings are made now conditional - enabled for *.cs files only.
+* All dependency products License agreements are now included in the distribution.
+
 ## BACKGROUND
 
 ### _Plugin_ 
