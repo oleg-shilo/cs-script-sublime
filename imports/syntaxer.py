@@ -19,8 +19,9 @@ out_panel = 'CS-Script'
 
 plugin_dir = path.dirname(path.dirname(__file__))
 csscriptApp = path.join(plugin_dir, 'bin', 'cscs.exe')
-syntaxerApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script','syntaxer.exe')
+syntaxerApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'syntaxer_v'+os.environ["cs-script.st3.ver"],'syntaxer.exe')
 syntaxerPort = 18000
+
 
 # =================================================================================
 # C# Syntax Server - service that any process can connect via socket and request 

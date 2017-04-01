@@ -12,7 +12,8 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.0.3.0'
+version = '1.1.0.0'
+os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
     raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
@@ -84,21 +85,50 @@ new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'new_sc
 bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script'+ os.sep)
 bin_src = path.join(plugin_dir, 'bin')
 
-def deploy_shadow_bin(file_name):
+# -------------------------
+def clear_old_versions_but(version):
+    old_syntaxer_exe = path.join(bin_dest, 'syntaxer.exe')
+    try:
+        os.remove(old_syntaxer_exe)
+    except:    
+        pass
+
+    sub_dirs = [name for name in os.listdir(bin_dest)
+            if os.path.isdir(os.path.join(bin_dest, name))]
+
+    for dir in sub_dirs:        
+        if dir.startswith('syntaxer') and not dir.endswith(version):
+            try:
+                shutil.rmtree(path.join(bin_dest, dir))
+            except:    
+                pass
+# -------------------------
+def deploy_shadow_bin(file_name, subdir = None):
+    
     if not path.exists(bin_dest): 
         os.makedirs(bin_dest)
+        
+    dest_dir = bin_dest
+    if subdir:
+        dest_dir = path.join(dest_dir, subdir)
+    
+    if not path.exists(dest_dir): 
+        os.makedirs(dest_dir)
+
     src = path.join(bin_src, file_name)
-    dest = path.join(bin_dest, file_name)
+    dest = path.join(dest_dir, file_name)
+
     try: 
+        # print('deploying', dest)
         if not path.exists(dest) or os.stat(src).st_size != os.stat(dest).st_size:
-            # print('depliying', file_name)
-            shutil.copy2(src, bin_dest)
+            shutil.copy2(src, dest_dir)
         else:
-            shutil.copy2(src, bin_dest)
+            shutil.copy2(src, dest_dir)
     except Exception as ex :
         print('deploy_shadow_bin', ex) 
         pass
     return dest
+# -------------------------
 
 # deploy an initial copy of cscs.exe so syntaxer can start but clear csscriptApp 
 # so it can be later set from settings 
@@ -118,8 +148,13 @@ else:
 
 deploy_shadow_bin('cscs.exe')
 csscriptApp = None
-syntaxerApp = deploy_shadow_bin('syntaxer.exe')
+syntaxerApp = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
 syntaxerPort = settings().get('server_port', 18000)
+
+os.environ["syntaxer_dir"] = path.dirname(syntaxerApp)
+print('syntaxer_dir', os.environ["syntaxer_dir"])
+clear_old_versions_but(version)
+# -------------------------
 
 def read_engine_config():
     global csscriptApp
