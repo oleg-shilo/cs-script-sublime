@@ -103,6 +103,30 @@ def clear_old_versions_but(version):
             except:    
                 pass
 # -------------------------
+def ensure_default_config(csscriptApp):
+    config_file = path.join(path.dirname(csscriptApp), 'css_config.xml')
+
+    if not path.exists(config_file):        
+        subprocess.Popen(to_args([csscriptApp, "-nl", '-noconfig:out']), 
+                         stdout=subprocess.PIPE, 
+                         cwd=path.dirname(csscriptApp), 
+                         shell=True).wait()
+
+        updated_config = ''
+
+        with open(config_file, "r") as f: 
+            updated_config  = f.read()
+
+        updated_config = updated_config.replace("<useAlternativeCompiler></useAlternativeCompiler>", 
+                                                "<useAlternativeCompiler>%syntaxer_dir%"+os.sep+"CSSCodeProvider.v4.6.dll</useAlternativeCompiler>") 
+
+        updated_config = updated_config.replace("</defaultRefAssemblies>", 
+                                                " %syntaxer_dir%"+os.sep+"System.ValueTuple.dll</defaultRefAssemblies>") 
+
+        with open(config_file, "w") as file: 
+            file.write(updated_config)
+
+# -------------------------
 def deploy_shadow_bin(file_name, subdir = None):
     
     if not path.exists(bin_dest): 
@@ -172,6 +196,8 @@ def read_engine_config():
             csscriptApp = path.join(deployment_dir, 'cscs.exe')
         else:
             csscriptApp = os.path.abspath(os.path.expandvars(cscs_path))
+
+# -------------------------
 
 read_engine_config()
 
@@ -306,12 +332,14 @@ class settings_listener(sublime_plugin.EventListener):
 
             print_config()
 
+
     def on_port_changed(self):
         global syntaxerPort
         port = settings().get('server_port', 18000)
         if syntaxerPort != port:
             syntaxerPort = port
             os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(syntaxerPort)
+
 
     def callback(self):
         global csscriptApp
@@ -327,13 +355,13 @@ class settings_listener(sublime_plugin.EventListener):
             # by cscs.exe internally for resolving packages.
             if os.name != 'nt':
                 os.environ["NUGET_INCOMPATIBLE_HOST"] = 'true' 
-
         else:
             try:
                 os.unsetenv('NUGET_INCOMPATIBLE_HOST')
             except Exception as e:
                 pass
 
+        ensure_default_config(csscriptApp)
             
 # =================================================================================
 # C#/CS-Script completion service
@@ -490,19 +518,10 @@ class csscript_listener(sublime_plugin.EventListener):
 class csscript_show_config(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
-
-        config_file = path.join(path.dirname(csscriptApp), 'css_config.xml')
-
-        if path.exists(config_file):
-            sublime.active_window().open_file(config_file)
-        else:
-            subprocess.Popen(to_args([csscriptApp, "-nl", '-noconfig:out']), 
-                             stdout=subprocess.PIPE, 
-                             cwd=path.dirname(csscriptApp), 
-                             shell=True).wait()
-
-            sublime.active_window().open_file(config_file)
-        
+        ensure_default_config(csscriptApp)
+        config_file = csscript_show_configpath.join(path.dirname(csscriptApp), 'css_config.xml')
+        sublime.active_window().open_file(config_file)
+    
 # =================================================================================
 # CS-Script code formatter service
 # =================================================================================
