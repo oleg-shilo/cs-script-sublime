@@ -269,11 +269,13 @@ class csscript_new(sublime_plugin.TextCommand):
 class csscript_help(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
+
         file = csscript_setup.prepare_readme()
         if os.path.exists(file):
             sublime.active_window().open_file(file)
         else:
             sublime.error_message('Cannot find '+file)
+
 # =================================================================================
 # C#/CS-Script CS-Script help service
 # =================================================================================

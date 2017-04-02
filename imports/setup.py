@@ -175,8 +175,18 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
     def on_activated(self, view):
         file = view.file_name()
         if file and file.lower().endswith('.cs'):
-            if settings().get('last_run_version', 'unknown') != csscript_setup.version:
+            last_run_version = settings().get('last_run_version', 'unknown')
+            just_installed = last_run_version == 'unknown';
+            
+            print('preparing for run...........................')
+            print('last_run_version', last_run_version)
+            print('just_installed', just_installed)
+            print('preparing for run...........................')
+
+            if just_installed:
                 sublime.set_timeout_async(self.show_readme, 500)
+            elif last_run_version != csscript_setup.version:
+                sublime.set_timeout_async(self.show_release_notes, 500)
 
             settings().set('last_run_version', csscript_setup.version)
             save_settings()
@@ -210,6 +220,13 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
         # print('csscript_help')
         # sublime.error_message('Readme.md')
         sublime.active_window().run_command("csscript_help")
+    # -----------------
+    def show_release_notes(self):
+        print('show_release_notes')
+        release_notes = os.path.join(plugin_dir, 'docs', 'release_notes.md')
+
+        if os.path.exists(release_notes):
+            sublime.active_window().open_file(release_notes)
     # -----------------
     def prepare_readme():
         readme = os.path.join(plugin_dir, 'readme.md')
