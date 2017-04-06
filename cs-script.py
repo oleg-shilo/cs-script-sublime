@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.1.0.0'
+version = '1.0.4.0'
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -117,11 +117,12 @@ def ensure_default_config(csscriptApp):
         with open(config_file, "r") as f: 
             updated_config  = f.read()
 
-        updated_config = updated_config.replace("<useAlternativeCompiler></useAlternativeCompiler>", 
-                                                "<useAlternativeCompiler>%syntaxer_dir%"+os.sep+"CSSCodeProvider.v4.6.dll</useAlternativeCompiler>") 
+        if os.name == 'nt':    
+            updated_config = updated_config.replace("<useAlternativeCompiler></useAlternativeCompiler>", 
+                                                    "<useAlternativeCompiler>%syntaxer_dir%"+os.sep+"CSSCodeProvider.v4.6.dll</useAlternativeCompiler>") 
 
-        updated_config = updated_config.replace("</defaultRefAssemblies>", 
-                                                " %syntaxer_dir%"+os.sep+"System.ValueTuple.dll</defaultRefAssemblies>") 
+            updated_config = updated_config.replace("</defaultRefAssemblies>", 
+                                                    " %syntaxer_dir%"+os.sep+"System.ValueTuple.dll</defaultRefAssemblies>") 
 
         with open(config_file, "w") as file: 
             file.write(updated_config)
@@ -519,7 +520,7 @@ class csscript_show_config(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
         ensure_default_config(csscriptApp)
-        config_file = csscript_show_configpath.join(path.dirname(csscriptApp), 'css_config.xml')
+        config_file = path.join(path.dirname(csscriptApp), 'css_config.xml')
         sublime.active_window().open_file(config_file)
     
 # =================================================================================

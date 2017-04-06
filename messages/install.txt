@@ -1,0 +1,10 @@
+Welcome to CS-Script!
+---------------------------------------------------------------------------------------
+CS-Script (C# intellisense) plugin for Sublime Text 3. The true C# intellisense and script execution solution, based on CS-Script and Roslyn.
+---------------------------------------------------------------------------------------
+CS-Script is a Open Source script engine for C# that delivers Pythons scripting experience for C# syntax. This plugin is a port/rework of the popular Notepad++ plugin CS-Script.Npp.
+
+The best way to start with CS-Script.ST3 plugin is to open the plugin help file `Context Menu` -> `CS-Script` -> `Show PLugin Help`
+
+For further information see the README.md at https://github.com/oleg-shilo/cs-script-sublime
+---------------------------------------------------------------------------------------

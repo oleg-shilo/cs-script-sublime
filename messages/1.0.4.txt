@@ -1,0 +1,6 @@
+Features/Changes:
+
+1. Added C# 7 support.
+  * Windows: Full support for intellisense and execution.
+  * Linux/Mac: Support for intellisense. The execution currently is limited to C#6 (Mono v4.8.0) with C#7 being automatically handled by the plugin from the moment Mono implements C# 7 specification.
+

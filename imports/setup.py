@@ -81,6 +81,8 @@ The following are the instructions on how to install Mono on Debian, Ubuntu, and
  echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
  sudo apt-get update
  sudo apt-get install mono-complete
+
+ Note, currently (as per Mar 2017) the latest version of Mono (v4.8.0) supports only C# 6 syntax. The plugin is already C#7 ready so will be able to run C#7 scripts from the moment Mono supports C#7.
 """
         else:
             css_ver, clr_ver = csscript_setup.get_css_version()
@@ -103,7 +105,7 @@ The following are the instructions on how to install Mono on Debian, Ubuntu, and
             if incompatible_clr:   
                 clr_install = """
 !!!!!!!!!!!!!!!!!
-The required version of .NET runtime cannot be deteced on the system.
+The required version of .NET runtime cannot be detected on the system.
 !!!!!!!!!!!!!!!!!
 Please visit .NET website (https://www.microsoft.com/net/download) and follow the instructions on how to install the latest version.
 """
