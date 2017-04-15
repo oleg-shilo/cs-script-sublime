@@ -1,0 +1,5 @@
+Features/Changes:
+
+1. Fixed problem with script execution excessive startup delay.
+
+  
