@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.0.5.0'
+version = '1.1.0.0'
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -107,7 +107,7 @@ def ensure_default_config(csscriptApp):
     config_file = path.join(path.dirname(csscriptApp), 'css_config.xml')
 
     if not path.exists(config_file):        
-        subprocess.Popen(to_args([csscriptApp, "-nl", '-noconfig:out']), 
+        subprocess.Popen(to_args([csscriptApp, '-config:create']), 
                          stdout=subprocess.PIPE, 
                          cwd=path.dirname(csscriptApp), 
                          shell=True).wait()
@@ -119,7 +119,7 @@ def ensure_default_config(csscriptApp):
 
         if os.name == 'nt':    
             updated_config = updated_config.replace("<useAlternativeCompiler></useAlternativeCompiler>", 
-                                                    "<useAlternativeCompiler>%syntaxer_dir%"+os.sep+"CSSCodeProvider.v4.6.dll</useAlternativeCompiler>") 
+                                                    "<useAlternativeCompiler>%syntaxer_dir%"+os.sep+"CSSRoslynProvider.dll</useAlternativeCompiler>") 
 
             updated_config = updated_config.replace("</defaultRefAssemblies>", 
                                                     " %syntaxer_dir%"+os.sep+"System.ValueTuple.dll</defaultRefAssemblies>") 
@@ -172,6 +172,7 @@ else:
 
 
 deploy_shadow_bin('cscs.exe')
+deploy_shadow_bin('CSSRoslynProvider.dll')
 csscriptApp = None
 syntaxerApp = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
 syntaxerPort = settings().get('server_port', 18000)
@@ -352,7 +353,7 @@ class settings_listener(sublime_plugin.EventListener):
 
         if settings().get('suppress_embedded_nuget_execution', False):
             # the default nuget app on Linux (e.g. Mint 18) is incompatible with std.out redirection.
-            # This is valid for both  both Python and .NET apps hosted by ST3. So suppress execution of 'nuget'
+            # This is valid for both both Python and .NET apps hosted by ST3. So suppress execution of 'nuget'
             # by cscs.exe internally for resolving packages.
             if os.name != 'nt':
                 os.environ["NUGET_INCOMPATIBLE_HOST"] = 'true' 
@@ -771,7 +772,7 @@ class csscript_load_proj(CodeViewTextCommand):
         def on_done():
             output_view_write_line(out_panel, "---------------------\n[Script dependencies]")
 
-        run_doc_in_cscs(["-nl", '-l', "-proj"], self.view, self.handle_line, on_done)
+        run_doc_in_cscs(["-nl", '-l', "-proj:dbg"], self.view, self.handle_line, on_done)
 
 # =================================================================================
 # CS-Script syntax check service
