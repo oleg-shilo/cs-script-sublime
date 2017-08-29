@@ -119,10 +119,15 @@ def ensure_default_config(csscriptApp):
 
         if os.name == 'nt':    
             updated_config = updated_config.replace("<useAlternativeCompiler></useAlternativeCompiler>", 
-                                                    "<useAlternativeCompiler>%syntaxer_dir%"+os.sep+"CSSRoslynProvider.dll</useAlternativeCompiler>") 
+                                                    "<useAlternativeCompiler>CSSRoslynProvider.dll</useAlternativeCompiler>") 
+                                                    # "<useAlternativeCompiler>%syntaxer_dir%"+os.sep+".."+os.sep+"CSSRoslynProvider.dll</useAlternativeCompiler>") 
+                                                    # "<useAlternativeCompiler>%syntaxer_dir%"+os.sep+"CSSRoslynProvider.dll</useAlternativeCompiler>") 
 
             updated_config = updated_config.replace("</defaultRefAssemblies>", 
                                                     " %syntaxer_dir%"+os.sep+"System.ValueTuple.dll</defaultRefAssemblies>") 
+
+            updated_config = updated_config.replace("<roslynDir></roslynDir>", 
+                                                    "<roslynDir>%syntaxer_dir%</roslynDir>") 
 
         with open(config_file, "w") as file: 
             file.write(updated_config)
@@ -172,12 +177,13 @@ else:
 
 
 deploy_shadow_bin('cscs.exe')
-deploy_shadow_bin('CSSRoslynProvider.dll')
 csscriptApp = None
+deploy_shadow_bin('CSSRoslynProvider.dll')
 syntaxerApp = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
 syntaxerPort = settings().get('server_port', 18000)
 
 os.environ["syntaxer_dir"] = path.dirname(syntaxerApp)
+# os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) may need to be the way for future
 print('syntaxer_dir', os.environ["syntaxer_dir"])
 clear_old_versions_but(version)
 # -------------------------

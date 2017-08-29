@@ -185,6 +185,19 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
             elif last_run_version != csscript_setup.version:
                 sublime.set_timeout_async(self.show_release_notes, 500)
 
+                def enable_roslyn():
+                    cscs = path.join(path.dirname(plugin_dir), 'User', 'cs-script','cscs.exe')
+                    proc = popen_redirect([cscs, "-config:set:roslyn"])    
+
+                    with open(readme, "w") as f: 
+                        popen_redirect_tofile([cssc, "-config:set:roslyn"], f).wait()
+
+                    if sublime.platform() == 'windows':
+                        proc = popen_redirect([cssc, "-config:set:roslynDir=%syntaxer_dir%"])    
+
+                sublime.set_timeout_async(enable_roslyn, 100)
+
+
             settings().set('last_run_version', csscript_setup.version)
             save_settings()
     # -----------------
