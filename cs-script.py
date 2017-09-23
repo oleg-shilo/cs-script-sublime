@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.1.0.0'
+version = '1.2.0.0'
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -1340,7 +1340,13 @@ class csscript_goto_definition(CodeViewTextCommand):
 
             path = csscript_goto_definition.parse_response(response)   
             if path:
-                sublime.active_window().open_file(path, sublime.ENCODED_POSITION)    
+                fiel_name = os.path.basename(path).split(':')[0].lower()
+                
+                if fiel_name.endswith('.dll') or fiel_name.endswith('.exe'):
+                    dir_path = os.path.dirname(path)
+                    sublime.active_window().run_command('open_dir', { 'dir': dir_path })
+                else:
+                    sublime.active_window().open_file(path, sublime.ENCODED_POSITION)    
     # -----------------
     def parse_response(response): 
         if not response:
