@@ -84,6 +84,10 @@ plugin_name = path.basename(plugin_dir)
 new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'new_script.cs')
 bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script'+ os.sep)
 bin_src = path.join(plugin_dir, 'bin')
+current_bin_dest = path.join(bin_dest+'syntaxer_v'+version)
+
+if not os.path.isdir(current_bin_dest):
+    os.environ["new_deployment"] = 'true' 
 
 # -------------------------
 def clear_old_versions_but(version):

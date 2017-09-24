@@ -92,15 +92,21 @@ def set_engine_path(cscs_path):
         reconnect_count = 0
         send_cscs_path(csscriptApp)
 
-        try:
-            args = []
-            args.append(csscriptApp)
-            args.append('-preload')
-            args = to_args(args)
-            subprocess.Popen(args, shell=True)
-            # print('Preloading done......')
-        except:
-            pass
+    if os.getenv("new_deployment") != 'true':
+        preload_engine()     
+# -----------------
+def preload_engine():
+    global csscriptApp
+    try:
+        args = []
+        args.append(csscriptApp)
+        args.append('-preload')
+        args = to_args(args)
+        subprocess.Popen(args, shell=True)
+        # print('Preloading done......')
+    except:
+        pass
+
 # -----------------
 def send_cscs_path(cscs_path):
     global reconnect_count
