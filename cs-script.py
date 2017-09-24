@@ -195,7 +195,7 @@ syntaxerApp = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
 syntaxerPort = settings().get('server_port', 18000)
 
 os.environ["syntaxer_dir"] = path.dirname(syntaxerApp)
-os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) # may need to be the way for future
+# os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) # may need to be the way for future
 print('syntaxer_dir', os.environ["syntaxer_dir"])
 clear_old_versions_but(version)
 # -------------------------
