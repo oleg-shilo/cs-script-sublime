@@ -1,0 +1,12 @@
+Features/Changes:
+
+1. Added support for intellisense for CS-Script directives:
+    - Tooltips for '//css_*'
+    - Completion for '//css_*'
+    - Completion for compatible files '//css_inc <file_name>'
+    - Completion for compatible files '//css_ref <file_name>'
+    - Go to definition (documentation section) of '//css_*'
+    - Go to definition (open file) of '//css_inc <file_name>'
+    - Go to definition (open containing folder) of '//css_ref <file_name>'
+
+  
