@@ -92,7 +92,8 @@ def set_engine_path(cscs_path):
         reconnect_count = 0
         send_cscs_path(csscriptApp)
 
-    if os.getenv("new_deployment") != 'true':
+    if os.getenv("new_deployment") != 'true' and os.getenv("engine_preloaded") != 'true':
+        os.environ["engine_preloaded"] = 'true'
         preload_engine()     
 # -----------------
 def preload_engine():
