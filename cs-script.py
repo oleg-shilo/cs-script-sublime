@@ -137,6 +137,14 @@ def ensure_default_config(csscriptApp):
             file.write(updated_config)
 
 # -------------------------
+def ensure_default_roslyn_config(csscriptApp):
+    if os.getenv("new_deployment") == 'true':
+        if os.name == 'nt':   
+            subprocess.Popen(to_args([csscriptApp, '-config:set:RoslynDir="'+current_bin_dest+'"']), 
+                                 stdout=subprocess.PIPE, 
+                                 cwd=path.dirname(csscriptApp), 
+                                 shell=True).wait()
+# -------------------------
 def deploy_shadow_bin(file_name, subdir = None):
     
     if not path.exists(bin_dest): 
@@ -187,7 +195,7 @@ syntaxerApp = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
 syntaxerPort = settings().get('server_port', 18000)
 
 os.environ["syntaxer_dir"] = path.dirname(syntaxerApp)
-# os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) may need to be the way for future
+os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) # may need to be the way for future
 print('syntaxer_dir', os.environ["syntaxer_dir"])
 clear_old_versions_but(version)
 # -------------------------
@@ -208,7 +216,6 @@ def read_engine_config():
             csscriptApp = path.join(deployment_dir, 'cscs.exe')
         else:
             csscriptApp = os.path.abspath(os.path.expandvars(cscs_path))
-
 # -------------------------
 
 read_engine_config()
@@ -226,7 +233,7 @@ def print_config():
 from .imports.utils import *  
 from .imports.syntaxer import *
 from .imports.setup import *
-
+# -------------------------
 csscript_setup.version = version
 
 def get_css_version():
@@ -374,6 +381,7 @@ class settings_listener(sublime_plugin.EventListener):
                 pass
 
         ensure_default_config(csscriptApp)
+        ensure_default_roslyn_config(csscriptApp)
             
 # =================================================================================
 # C#/CS-Script completion service
