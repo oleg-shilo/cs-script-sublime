@@ -37,7 +37,11 @@
     },
     {
         "caption": "cs-script: Show CS-Script project",
-        "command": "csscript_load_proj",
+        "command": "csscript_list_proj_files",
+    },
+    {
+        "caption": "cs-script: List script sources",
+        "command": "csscript_list_proj_sources",
     }
 
     // {

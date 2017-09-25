@@ -252,7 +252,6 @@ def run_doc_in_cscs(args, view, handle_line, on_done=None, nuget_warning = True)
 
                 handle_line(line)    
 
-
             if on_done:
                 on_done()    
 

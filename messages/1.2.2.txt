@@ -1,0 +1,13 @@
+Features/Changes:
+
+1. Removed auto referencing "System.ValueTuple.dll" from the default config. With the current Roslyn an explicit  referencing is no longer required.
+2. "Show CS-Script Project" is remapped to Alt+F7
+3. Added new command (Shift+F7) for printing CS-Script sources:
+
+    Script: C:\Users\<user>\AppData\Roaming\Sublime Text 3\Packages\User\cs-script\new_script.cs
+    ------------------------------------------------------------------------
+    Sources
+      ├─ C:\Users\<user>\AppData\Roaming\Sublime Text 3\Packages\User\cs-script\new_script.cs
+      └─ C:\ProgramData\CS-Script\inc\cmd.cs
+
+  

@@ -14,7 +14,10 @@
     { "keys": ["f7"], "command": "csscript_syntax_check" 
         , "context": [{ "key": "selector", "operator": "equal", "operand": "source.cs"}]
     },
-    { "keys": ["ctrl+f7"], "command": "csscript_load_proj" 
+    { "keys": ["alt+f7"], "command": "csscript_list_proj_files" 
+        , "context": [{ "key": "selector", "operator": "equal", "operand": "source.cs"}]
+    },
+    { "keys": ["shift+f7"], "command": "csscript_list_proj_sources" 
         , "context": [{ "key": "selector", "operator": "equal", "operand": "source.cs"}]
     },
     { "keys": ["ctrl+."], "command": "csscript_resolve_using" 

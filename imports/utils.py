@@ -258,6 +258,8 @@ class TerminalSelector():
         TerminalSelector.default = default
         return default
 # -----------------
+item_boxed_prefix = '  ├─ '
+last_item_boxed_prefix = '  └─ '
 def navigate_to_file_ref(reference):
     # e:\script.cs(20,7): error CS1002: ; expected
     # file: e:\script.cs
@@ -265,6 +267,11 @@ def navigate_to_file_ref(reference):
     if reference.startswith('file:'):
         reference = reference.replace('file:', '').strip()
 
+    if reference.startswith(item_boxed_prefix):
+        reference = reference.replace(item_boxed_prefix, '').strip()
+    if reference.startswith(last_item_boxed_prefix):
+        reference = reference.replace(last_item_boxed_prefix, '').strip()
+    
     if reference.startswith('csscript.CompilerException: '):
         reference = reference.replace('csscript.CompilerException: ', '').strip()
 

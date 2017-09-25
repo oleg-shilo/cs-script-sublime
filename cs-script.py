@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.1.0'
+version = '1.2.2.0'
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -124,11 +124,14 @@ def ensure_default_config(csscriptApp):
         if os.name == 'nt':    
             updated_config = updated_config.replace("<useAlternativeCompiler></useAlternativeCompiler>", 
                                                     "<useAlternativeCompiler>CSSRoslynProvider.dll</useAlternativeCompiler>") 
-                                                    # "<useAlternativeCompiler>%syntaxer_dir%"+os.sep+".."+os.sep+"CSSRoslynProvider.dll</useAlternativeCompiler>") 
-                                                    # "<useAlternativeCompiler>%syntaxer_dir%"+os.sep+"CSSRoslynProvider.dll</useAlternativeCompiler>") 
 
-            updated_config = updated_config.replace("</defaultRefAssemblies>", 
-                                                    " %syntaxer_dir%"+os.sep+"System.ValueTuple.dll</defaultRefAssemblies>") 
+            need_explicit_tuple_ref = False
+            if need_explicit_tuple_ref:                 
+                updated_config = updated_config.replace("</defaultRefAssemblies>", 
+                                                        " %syntaxer_dir%"+os.sep+"System.ValueTuple.dll</defaultRefAssemblies>") 
+            else:
+                updated_config = updated_config.replace(" %syntaxer_dir%"+os.sep+"System.ValueTuple.dll", "")
+
 
             updated_config = updated_config.replace("<roslynDir></roslynDir>", 
                                                     "<roslynDir>%syntaxer_dir%</roslynDir>") 
@@ -195,7 +198,7 @@ syntaxerApp = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
 syntaxerPort = settings().get('server_port', 18000)
 
 os.environ["syntaxer_dir"] = path.dirname(syntaxerApp)
-# os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) # may need to be the way for future
+# os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) may need to be the way for future
 print('syntaxer_dir', os.environ["syntaxer_dir"])
 clear_old_versions_but(version)
 # -------------------------
@@ -216,6 +219,7 @@ def read_engine_config():
             csscriptApp = path.join(deployment_dir, 'cscs.exe')
         else:
             csscriptApp = os.path.abspath(os.path.expandvars(cscs_path))
+
 # -------------------------
 
 read_engine_config()
@@ -233,7 +237,7 @@ def print_config():
 from .imports.utils import *  
 from .imports.syntaxer import *
 from .imports.setup import *
-# -------------------------
+
 csscript_setup.version = version
 
 def get_css_version():
@@ -764,7 +768,8 @@ class csscript_about(sublime_plugin.TextCommand):
 # =================================================================================
 # CS-Script project resolver service
 # =================================================================================
-class csscript_load_proj(CodeViewTextCommand):
+# class csscript_load_proj(CodeViewTextCommand):
+class csscript_list_proj_files(CodeViewTextCommand):
     # -----------------
     def handle_line(self, line):
         curr_prefix = line.split(':', 1)[0]    
@@ -777,7 +782,7 @@ class csscript_load_proj(CodeViewTextCommand):
         view = self.view
         self.prefix = 'file' 
         
-        sublime.status_message('Checking script depenencies for "'+self.view.file_name()+'"')
+        sublime.status_message('Checking script deficiencies for "'+self.view.file_name()+'"')
 
         if self.view.is_dirty():
             sublime.active_window().run_command("save")
@@ -789,6 +794,50 @@ class csscript_load_proj(CodeViewTextCommand):
         
         def on_done():
             output_view_write_line(out_panel, "---------------------\n[Script dependencies]")
+
+        run_doc_in_cscs(["-nl", '-l', "-proj:dbg"], self.view, self.handle_line, on_done)
+# =================================================================================
+# CS-Script project (sources only) resolver service
+# =================================================================================
+class csscript_list_proj_sources(CodeViewTextCommand):
+    # -----------------
+    def handle_line(self, line):
+        curr_prefix = line.split(':', 1)[0]    
+        if curr_prefix != self.prefix:
+            self.prefix = curr_prefix
+            # don't separate for now
+            # output_view_write_line(out_panel, '-------')
+        
+        if not line.endswith('dbg.cs'):
+            if curr_prefix.startswith('file'):
+                text = line.replace("file:", '')
+                if self.prev_line:
+                    output_view_write_line(out_panel, item_boxed_prefix + self.prev_line)
+                else:
+                    output_view_write_line(out_panel, 'Sources')
+
+                self.prev_line = text
+    # -----------------
+    def run(self, edit):
+        view = self.view
+        self.prefix = 'file' 
+        self.prev_line = None
+        sublime.status_message('Checking script dependencies for "'+self.view.file_name()+'"')
+
+        if self.view.is_dirty():
+            sublime.active_window().run_command("save")
+            sublime.set_timeout(self.do, 100)
+        else:
+            self.do()
+    # -----------------
+    def do(self):
+        
+        def on_done():
+            if self.prev_line:
+                output_view_write_line(out_panel, last_item_boxed_prefix + self.prev_line)
+            self.prev_line = None
+
+            # output_view_write_line(out_panel, "---------------------\n[Script dependencies]")
 
         run_doc_in_cscs(["-nl", '-l', "-proj:dbg"], self.view, self.handle_line, on_done)
 
@@ -1267,7 +1316,7 @@ class csscript_execute_and_wait(CodeViewTextCommand):
 
                 cwd = os.path.dirname(curr_doc)
                 
-                css_command = to_args([csscriptApp, "-nl", '-l', '%SCRIPT_FILE%'])[0] # wioll wrapp into quotations 
+                css_command = to_args([csscriptApp, "-nl", '-l', '%SCRIPT_FILE%'])[0] # will wrap into quotations 
                 command = "bash -c \"{0} ; exec bash\"".format(css_command)
                 args =[TerminalSelector.get(), '-e', command]
 
