@@ -87,8 +87,9 @@ bin_src = path.join(plugin_dir, 'bin')
 current_bin_dest = path.join(bin_dest+'syntaxer_v'+version)
 
 if not os.path.isdir(current_bin_dest):
-    os.environ["new_deployment"] = 'true' 
-
+    send_exit_request()
+    os.environ["new_deployment"] = 'true'
+ 
 # -------------------------
 def clear_old_versions_but(version):
     old_syntaxer_exe = path.join(bin_dest, 'syntaxer.exe')
@@ -139,14 +140,24 @@ def ensure_default_config(csscriptApp):
         with open(config_file, "w") as file: 
             file.write(updated_config)
 
+    else:
+        # update existing config to be compatible with the current cscs.exe 
+        if os.getenv("new_deployment") == 'true':
+            
+            with open(config_file, "r") as f: 
+                updated_config  = f.read()
+            updated_config = updated_config.replace(" %syntaxer_dir%"+os.sep+"System.ValueTuple.dll", "")
+            with open(config_file, "w") as file: 
+                file.write(updated_config)
+
 # -------------------------
 def ensure_default_roslyn_config(csscriptApp):
     if os.getenv("new_deployment") == 'true':
         if os.name == 'nt':   
             subprocess.Popen(to_args([csscriptApp, '-config:set:RoslynDir="'+current_bin_dest+'"']), 
-                                 stdout=subprocess.PIPE, 
-                                 cwd=path.dirname(csscriptApp), 
-                                 shell=True).wait()
+                             stdout=subprocess.PIPE, 
+                             cwd=path.dirname(csscriptApp), 
+                             shell=True).wait()
 # -------------------------
 def deploy_shadow_bin(file_name, subdir = None):
     
