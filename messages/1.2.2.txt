@@ -10,4 +10,15 @@ Features/Changes:
       ├─ C:\Users\<user>\AppData\Roaming\Sublime Text 3\Packages\User\cs-script\new_script.cs
       └─ C:\ProgramData\CS-Script\inc\cmd.cs
 
-  
+-------------------------------------------------------------------
+If upgrading, you may need to update your config file manually if the plugin failed to do so automatically.
+Please ensure your config file has the major elements set as below:
+
+  open *.cs doc -> context menu -> CS-Script -> Settings... -> CS-Script Config
+
+  <CSSConfig>
+    <defaultRefAssemblies>System; System.Core; System.Linq;</defaultRefAssemblies>
+    <useAlternativeCompiler>CSSRoslynProvider.dll</useAlternativeCompiler>
+    <roslynDir>%syntaxer_dir%</roslynDir>
+    ...
+
