@@ -87,11 +87,21 @@ bin_src = path.join(plugin_dir, 'bin')
 current_bin_dest = path.join(bin_dest+'syntaxer_v'+version)
 
 if not os.path.isdir(current_bin_dest):
-    send_exit_request()
     os.environ["new_deployment"] = 'true'
  
 # -------------------------
 def clear_old_versions_but(version):
+
+    if os.getenv("new_deployment") == 'true':
+        import socket
+        from socket import error as socket_error
+        try:
+            clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            clientsocket.connect(('localhost', syntaxerPort))
+            clientsocket.send('-exit'.encode('utf-8'))
+        except socket_error as serr:
+            pass
+
     old_syntaxer_exe = path.join(bin_dest, 'syntaxer.exe')
     try:
         os.remove(old_syntaxer_exe)
