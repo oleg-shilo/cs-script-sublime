@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.3.2' # build 2
+version = '1.2.3.3' # build 3
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -119,6 +119,7 @@ def clear_old_versions_but(version):
                 pass
 # -------------------------
 def ensure_default_config(csscriptApp):
+
     config_file = path.join(path.dirname(csscriptApp), 'css_config.xml')
 
     if not path.exists(config_file):        
@@ -151,12 +152,12 @@ def ensure_default_config(csscriptApp):
             file.write(updated_config)
 
     else:
+
         # update existing config to be compatible with the current cscs.exe 
         if os.getenv("new_deployment") == 'true':
-            
-            with open(config_file, "r") as f: 
+            with open(config_file, "r") as f:      
                 updated_config  = f.read()
-            updated_config = updated_config.replace(" %syntaxer_dir%"+os.sep+"System.ValueTuple.dll", "")
+            updated_config = updated_config.replace("%syntaxer_dir%"+os.sep+"System.ValueTuple.dll", "")
             with open(config_file, "w") as file: 
                 file.write(updated_config)
 
@@ -168,6 +169,11 @@ def ensure_default_roslyn_config(csscriptApp):
                              stdout=subprocess.PIPE, 
                              cwd=path.dirname(csscriptApp), 
                              shell=True).wait()
+            subprocess.Popen(to_args([csscriptApp, '-config:set:useAlternativeCompiler=CSSRoslynProvider.dll']), 
+                             stdout=subprocess.PIPE, 
+                             cwd=path.dirname(csscriptApp), 
+                             shell=True).wait()
+
 # -------------------------
 def deploy_shadow_bin(file_name, subdir = None):
     
@@ -390,8 +396,7 @@ class settings_listener(sublime_plugin.EventListener):
 
         config = settings()
 
-        if config:
-            csscriptApp != config.get('cscs_path', '<none>'):
+        if config and csscriptApp != config.get('cscs_path', '<none>'):
             read_engine_config()
             
             # sublime.error_message('About to send '+csscriptApp)
@@ -862,7 +867,7 @@ class csscript_list_proj_sources(CodeViewTextCommand):
                 output_view_write_line(out_panel, last_item_boxed_prefix + self.prev_line)
             self.prev_line = None
 
-            # output_view_write_line(out_panel, "---------------------\n[Script dependencies]")
+            output_view_write_line(out_panel, "---------------------\n[Script sources]")
 
         run_doc_in_cscs(["-nl", '-l', "-proj:dbg"], self.view, self.handle_line, on_done)
 
