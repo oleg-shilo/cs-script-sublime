@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.3.6' # build 6
+version = '1.2.3.7' # build 7
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -400,30 +400,30 @@ class settings_listener(sublime_plugin.EventListener):
 
         # may be fired when setting are not available yet
         try:
-        if csscriptApp != settings().get('cscs_path', '<none>'):
-            read_engine_config()
-            
-            # sublime.error_message('About to send '+csscriptApp)
-            set_engine_path(csscriptApp)
+            if csscriptApp != settings().get('cscs_path', '<none>'):
+                read_engine_config()
+                
+                # sublime.error_message('About to send '+csscriptApp)
+                set_engine_path(csscriptApp)
 
-            if settings().get('suppress_embedded_nuget_execution', False):
-                # the default nuget app on Linux (e.g. Mint 18) is incompatible with std.out redirection.
-                # This is valid for both both Python and .NET apps hosted by ST3. So suppress execution of 'nuget'
-                # by cscs.exe internally for resolving packages.
-                if os.name != 'nt':
-                    os.environ["NUGET_INCOMPATIBLE_HOST"] = 'true' 
-            else:
-                try:
-                    os.unsetenv('NUGET_INCOMPATIBLE_HOST')
-                except Exception as e:
-                    pass
+                if settings().get('suppress_embedded_nuget_execution', False):
+                    # the default nuget app on Linux (e.g. Mint 18) is incompatible with std.out redirection.
+                    # This is valid for both both Python and .NET apps hosted by ST3. So suppress execution of 'nuget'
+                    # by cscs.exe internally for resolving packages.
+                    if os.name != 'nt':
+                        os.environ["NUGET_INCOMPATIBLE_HOST"] = 'true' 
+                else:
+                    try:
+                        os.unsetenv('NUGET_INCOMPATIBLE_HOST')
+                    except Exception as e:
+                        pass
 
-            ensure_default_config(csscriptApp)
-            ensure_default_roslyn_config(csscriptApp)
+                ensure_default_config(csscriptApp)
+                ensure_default_roslyn_config(csscriptApp)
 
-            if os.getenv("new_deployment") != 'true' and os.getenv("engine_preloaded") != 'true':
-                os.environ["engine_preloaded"] = 'true'
-                preload_engine() 
+                if os.getenv("new_deployment") != 'true' and os.getenv("engine_preloaded") != 'true':
+                    os.environ["engine_preloaded"] = 'true'
+                    preload_engine() 
 
         except:
             pass
