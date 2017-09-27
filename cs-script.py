@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.3.3' # build 3
+version = '1.2.3.4' # build 4
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -385,17 +385,20 @@ class settings_listener(sublime_plugin.EventListener):
 
     def on_port_changed(self):
         global syntaxerPort
-        port = settings().get('server_port', 18000)
-        if syntaxerPort != port:
-            syntaxerPort = port
-            os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(syntaxerPort)
 
+        # may be fired when setting are not available yet
+        config = settings()
+        if config:
+            port = config.get('server_port', 18000)
+            if syntaxerPort != port:
+                syntaxerPort = port
+                os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(syntaxerPort)
 
     def callback(self):
         global csscriptApp
 
         config = settings()
-
+        # may be fired when setting are not available yet
         if config and csscriptApp != config.get('cscs_path', '<none>'):
             read_engine_config()
             
