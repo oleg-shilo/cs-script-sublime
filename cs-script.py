@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.3.5' # build 5
+version = '1.2.3.6' # build 6
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -419,6 +419,11 @@ class settings_listener(sublime_plugin.EventListener):
 
             ensure_default_config(csscriptApp)
             ensure_default_roslyn_config(csscriptApp)
+
+            # if os.getenv("new_deployment") != 'true' and os.getenv("engine_preloaded") != 'true':
+            if os.getenv("engine_preloaded") != 'true':
+                os.environ["engine_preloaded"] = 'true'
+                preload_engine() 
             
 # =================================================================================
 # C#/CS-Script completion service
