@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.3.0' # build 0
+version = '1.2.3.2' # build 2
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -387,26 +387,30 @@ class settings_listener(sublime_plugin.EventListener):
 
     def callback(self):
         global csscriptApp
-        if csscriptApp != settings().get('cscs_path', '<none>'):
+
+        config = settings()
+
+        if config:
+            csscriptApp != config.get('cscs_path', '<none>'):
             read_engine_config()
             
-        # sublime.error_message('About to send '+csscriptApp)
-        set_engine_path(csscriptApp)
+            # sublime.error_message('About to send '+csscriptApp)
+            set_engine_path(csscriptApp)
 
-        if settings().get('suppress_embedded_nuget_execution', False):
-            # the default nuget app on Linux (e.g. Mint 18) is incompatible with std.out redirection.
-            # This is valid for both both Python and .NET apps hosted by ST3. So suppress execution of 'nuget'
-            # by cscs.exe internally for resolving packages.
-            if os.name != 'nt':
-                os.environ["NUGET_INCOMPATIBLE_HOST"] = 'true' 
-        else:
-            try:
-                os.unsetenv('NUGET_INCOMPATIBLE_HOST')
-            except Exception as e:
-                pass
+            if config.get('suppress_embedded_nuget_execution', False):
+                # the default nuget app on Linux (e.g. Mint 18) is incompatible with std.out redirection.
+                # This is valid for both both Python and .NET apps hosted by ST3. So suppress execution of 'nuget'
+                # by cscs.exe internally for resolving packages.
+                if os.name != 'nt':
+                    os.environ["NUGET_INCOMPATIBLE_HOST"] = 'true' 
+            else:
+                try:
+                    os.unsetenv('NUGET_INCOMPATIBLE_HOST')
+                except Exception as e:
+                    pass
 
-        ensure_default_config(csscriptApp)
-        ensure_default_roslyn_config(csscriptApp)
+            ensure_default_config(csscriptApp)
+            ensure_default_roslyn_config(csscriptApp)
             
 # =================================================================================
 # C#/CS-Script completion service
