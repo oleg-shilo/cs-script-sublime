@@ -94,8 +94,6 @@ def clear_old_versions_but(version):
 
     if os.getenv("new_deployment") == 'true':
 
-        if os.name == 'nt': os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is running
-        
         import socket
         from socket import error as socket_error
         try:
@@ -104,6 +102,11 @@ def clear_old_versions_but(version):
             clientsocket.send('-exit'.encode('utf-8'))
         except socket_error as serr:
             pass
+            
+        if os.name == 'nt': 
+            os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is runningif os.name == 'nt': 
+            os.system('taskkill /f /im syntaxer.exe')     # stop syntaxer
+        
 
     old_syntaxer_exe = path.join(bin_dest, 'syntaxer.exe')
     try:
