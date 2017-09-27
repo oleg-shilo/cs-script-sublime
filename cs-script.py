@@ -387,25 +387,26 @@ class settings_listener(sublime_plugin.EventListener):
         global syntaxerPort
 
         # may be fired when setting are not available yet
-        config = sublime.load_settings("cs-script.sublime-settings")
-        if config:
-            port = sublime.load_settings("cs-script.sublime-settings").get('server_port', 18000)
+        try:
+            port = settings().get('server_port', 18000)
             if syntaxerPort != port:
                 syntaxerPort = port
                 os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(syntaxerPort)
+        except :
+            pass
 
     def callback(self):
         global csscriptApp
 
-        config = sublime.load_settings("cs-script.sublime-settings")
         # may be fired when setting are not available yet
-        if config and csscriptApp != config.get('cscs_path', '<none>'):
+        try:
+        if csscriptApp != settings().get('cscs_path', '<none>'):
             read_engine_config()
             
             # sublime.error_message('About to send '+csscriptApp)
             set_engine_path(csscriptApp)
 
-            if config.get('suppress_embedded_nuget_execution', False):
+            if settings().get('suppress_embedded_nuget_execution', False):
                 # the default nuget app on Linux (e.g. Mint 18) is incompatible with std.out redirection.
                 # This is valid for both both Python and .NET apps hosted by ST3. So suppress execution of 'nuget'
                 # by cscs.exe internally for resolving packages.
@@ -420,10 +421,12 @@ class settings_listener(sublime_plugin.EventListener):
             ensure_default_config(csscriptApp)
             ensure_default_roslyn_config(csscriptApp)
 
-            # if os.getenv("new_deployment") != 'true' and os.getenv("engine_preloaded") != 'true':
-            if os.getenv("engine_preloaded") != 'true':
+            if os.getenv("new_deployment") != 'true' and os.getenv("engine_preloaded") != 'true':
                 os.environ["engine_preloaded"] = 'true'
                 preload_engine() 
+
+        except:
+            pass
             
 # =================================================================================
 # C#/CS-Script completion service
