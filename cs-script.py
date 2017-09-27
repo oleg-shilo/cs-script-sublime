@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.3.7' # build 7
+version = '1.2.3' # build 0
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -93,6 +93,9 @@ if not os.path.isdir(current_bin_dest):
 def clear_old_versions_but(version):
 
     if os.getenv("new_deployment") == 'true':
+
+        if os.name == 'nt': os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is running
+        
         import socket
         from socket import error as socket_error
         try:
