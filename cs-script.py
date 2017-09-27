@@ -387,7 +387,7 @@ class settings_listener(sublime_plugin.EventListener):
         global syntaxerPort
 
         # may be fired when setting are not available yet
-        config = sublime.load_settings("cs-script.sublime-settings")()
+        config = sublime.load_settings("cs-script.sublime-settings")
         if config:
             port = sublime.load_settings("cs-script.sublime-settings").get('server_port', 18000)
             if syntaxerPort != port:
