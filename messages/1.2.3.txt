@@ -1,0 +1,3 @@
+Features/Changes:
+
+- Improved stability of upgrade procedure (killing running processes, cleaning old version binaries)
