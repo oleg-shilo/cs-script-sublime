@@ -71,6 +71,10 @@
                 ]
             },
             {
+                "command": "csscript_show_output",
+                "caption": "Show output"
+            },
+            {
                 "command": "csscript_help",
                 "caption": "Show Plugin Help"
             },

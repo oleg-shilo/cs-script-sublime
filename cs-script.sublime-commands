@@ -36,6 +36,10 @@
         "command": "csscript_format_code",
     },
     {
+        "caption": "cs-script: Show CS-Script output",
+        "command": "csscript_show_output",
+    },
+    {
         "caption": "cs-script: Show CS-Script project",
         "command": "csscript_list_proj_files",
     },
