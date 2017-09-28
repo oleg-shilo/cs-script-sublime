@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.3' # build 0
+version = '1.2.4' # build 0
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
