@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.5' # build 0
+version = '1.2.6' # build 0
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -93,19 +93,13 @@ if not os.path.isdir(current_bin_dest):
 def clear_old_versions_but(version):
 
     if os.getenv("new_deployment") == 'true':
-
-        import socket
-        from socket import error as socket_error
         try:
-            clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            clientsocket.connect(('localhost', syntaxerPort))
-            clientsocket.send('-exit'.encode('utf-8'))
-        except socket_error as serr:
+            if os.name == 'nt': 
+                os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is runningif os.name == 'nt': 
+                os.system('taskkill /f /im syntaxer.exe')     # stop syntaxer
+        except:
             pass
             
-        if os.name == 'nt': 
-            os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is runningif os.name == 'nt': 
-            os.system('taskkill /f /im syntaxer.exe')     # stop syntaxer
         
 
     old_syntaxer_exe = path.join(bin_dest, 'syntaxer.exe')
@@ -115,7 +109,7 @@ def clear_old_versions_but(version):
         pass
 
     sub_dirs = [name for name in os.listdir(bin_dest)
-            if os.path.isdir(os.path.join(bin_dest, name))]
+           if os.path.isdir(os.path.join(bin_dest, name))]
 
     for dir in sub_dirs:        
         if dir.startswith('syntaxer') and not dir.endswith(version):
@@ -429,7 +423,10 @@ class settings_listener(sublime_plugin.EventListener):
 
                 if os.getenv("new_deployment") != 'true' and os.getenv("engine_preloaded") != 'true':
                     os.environ["engine_preloaded"] = 'true'
-                    preload_engine() 
+                    # Preloading only improves the initial overhead for compiling but not for the intellisense. 
+                    # Important: must to wait a bit to allow Roslyn binaries to be done copied (if they ara being moved)
+                    # Otherwise Roslyn cscs.exe may throw.         
+                    sublime.set_timeout(preload_engine, 5000)
 
         except:
             pass
