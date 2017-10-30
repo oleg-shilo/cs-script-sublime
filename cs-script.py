@@ -424,8 +424,10 @@ class settings_listener(sublime_plugin.EventListener):
                 if os.getenv("new_deployment") != 'true' and os.getenv("engine_preloaded") != 'true':
                     os.environ["engine_preloaded"] = 'true'
                     # Preloading only improves the initial overhead for compiling but not for the intellisense. 
-                    # Important: must to wait a bit to allow Roslyn binaries to be done copied (if they ara being moved)
-                    # Otherwise Roslyn cscs.exe may throw.         
+                    # Important: must to wait a bit to allow Roslyn binaries to be done copied (if they are being moved)
+                    # Otherwise Roslyn cscs.exe may throw.        
+                    # A typical case of th race condition is when cs-script.py has been updated during the package
+                    # upgrade ans this callback is being invoked because of the package setting file being replaced.                       
                     sublime.set_timeout(preload_engine, 5000)
 
         except:
