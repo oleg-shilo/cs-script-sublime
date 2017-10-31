@@ -11,28 +11,26 @@ import threading
 from os import path
 from subprocess import Popen, PIPE, STDOUT
 from distutils.version import LooseVersion, StrictVersion
-# -------------------------  
-from .utils import *  
+# -------------------------
+from .utils import *
 from .syntaxer import *
 # -------------------------
 plugin_dir = path.dirname(path.dirname(__file__))
-# csscriptApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script','cscs.exe')
-# syntaxerApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script','syntaxer.exe')
 
 def settings():
     return sublime.load_settings("cs-script.sublime-settings")
 
 def save_settings():
     return sublime.save_settings("cs-script.sublime-settings")
-              
+
 
 # =================================================================================
 # C#/CS-Script setup service
 # =================================================================================
 class csscript_setup(sublime_plugin.EventListener):
-    # ----------------- 
+    # -----------------
     version = None
-    # ----------------- 
+    # -----------------
     def get_sysconfig_description():
         template = """
 **Required minimum system configuration:**
@@ -46,8 +44,8 @@ class csscript_setup(sublime_plugin.EventListener):
 
         required_clr = ''
         detected_clr = ''
-        detected_css = '' 
-        clr_install = ''     
+        detected_css = ''
+        clr_install = ''
 
         if os.name == 'posix':
             required_clr = 'Mono:       v4.6.2'
@@ -70,7 +68,7 @@ class csscript_setup(sublime_plugin.EventListener):
                 detected_clr = 'Mono:       v' + str(current_mono_version)
                 detected_css = 'CS-Script:  v' + css_ver
 
-            if incompatible_clr:   
+            if incompatible_clr:
                 clr_install = """
 The required version of Mono runtime cannot be deteced on the system.
 Please visit Mono website (http://www.mono-project.com/docs/getting-started/install/linux/) and follow the instructions on how to install the latest version.
@@ -99,10 +97,10 @@ The following are the instructions on how to install Mono on Debian, Ubuntu, and
                 incompatible_clr = False
 
             required_clr = '.NET:       v4.0/4.5'
-            detected_clr = '.NET:       v' + clr_ver   
+            detected_clr = '.NET:       v' + clr_ver
             detected_css = 'CS-Script:  v' + css_ver
-            
-            if incompatible_clr:   
+
+            if incompatible_clr:
                 clr_install = """
 !!!!!!!!!!!!!!!!!
 The required version of .NET runtime cannot be detected on the system.
@@ -112,8 +110,8 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
         return template.replace('{req_clr}', required_clr) \
                        .replace('{det_clr}', detected_clr) \
                        .replace('{det_css}', detected_css) \
-                       .replace('{clr_install}', clr_install) 
-    # ----------------- 
+                       .replace('{clr_install}', clr_install)
+    # -----------------
     def get_mono_version():
         try:
             version = ''
@@ -122,7 +120,7 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
             command = ['mono', '--version']
             with open(file, 'w') as logfile:
                 subprocess.call(command, stdout=logfile, shell=False)
-                
+
             with open(file, 'r') as logfile:
                 prefix = 'Mono JIT compiler version'
                 for line in logfile.readlines():
@@ -132,13 +130,13 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
 
             if os.path.exists(file):
                 os.remove(file)
-            
+
             return version
 
         except Exception as e:
             print(e)
             return None
-    # ----------------- 
+    # -----------------
     def get_css_version():
         try:
             version = ''
@@ -151,9 +149,9 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
             # print('csscriptApp', os.path.exists(csscriptApp), csscriptApp)
 
             prefix = 'C# Script execution engine. Version'
-            clr_prefix = 'CLR:' 
+            clr_prefix = 'CLR:'
 
-            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):  
+            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
                 # print(line)
                 line = line.strip()
                 if prefix in line:
@@ -179,7 +177,7 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
         if file and file.lower().endswith('.cs'):
             last_run_version = settings().get('last_run_version', 'unknown')
             just_installed = last_run_version == 'unknown';
-            
+
             if just_installed:
                 sublime.set_timeout_async(self.show_readme, 500)
             elif last_run_version != csscript_setup.version:
@@ -190,7 +188,7 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
     # -----------------
     def prepare_new_script():
         template_file = os.path.join(plugin_dir, '..', 'User', 'cs-script', 'new_script.tmpl')
-        
+
         template = 'using System;\n'
         template = template + '$backup_comment$\n'
         template = template + 'class Script\n'
@@ -202,11 +200,11 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
         template = template + '}'
 
         if not os.path.exists(template_file):
-            with open(template_file, "w") as f: 
+            with open(template_file, "w") as f:
                 f.write(template)
 
         try:
-            with open(template_file, "r") as f: 
+            with open(template_file, "r") as f:
                 template = f.read()
         except:
             pass
@@ -231,23 +229,23 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
         readme_template = os.path.join(plugin_dir, 'docs', 'readme.tmpl.md')
         template = ''
 
-        with open(readme_template, "r") as f: 
+        with open(readme_template, "r") as f:
             templete = f.read()
 
-        content = templete.replace('{SYS_REQ}', csscript_setup.get_sysconfig_description())    
+        content = templete.replace('{SYS_REQ}', csscript_setup.get_sysconfig_description())
 
 
-        with open(readme, "w") as f: 
+        with open(readme, "w") as f:
             f.write(content)
 
         return readme
     # -----------------
     def prepare_css_help():
         global csscriptApp
-        
+
         readme = os.path.join(plugin_dir, 'cs-script.help.txt')
 
-        with open(readme, "w") as f: 
+        with open(readme, "w") as f:
             popen_redirect_tofile([csscriptApp, "-help"], f).wait()
 
         return readme

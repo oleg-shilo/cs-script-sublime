@@ -95,7 +95,7 @@ def set_engine_path(cscs_path):
     if cscs_path:
         csscriptApp = cscs_path
         reconnect_count = 0
-        print('setting engine path')
+        # print('setting engine path')
         send_cscs_path(csscriptApp)
 
 # -----------------
@@ -108,14 +108,19 @@ def preload_engine():
         args = to_args(args)
         start = time.time()
         subprocess.Popen(args, shell=True)
-        print('> Preloading done:', time.time()-start, 'seconds')
+        print('> Roslyn preloading done:', time.time()-start, 'seconds')
     except:
         pass
 
 # -----------------
 def send_cscs_path(cscs_path):
+    sublime.set_timeout_async(lambda: try_send_cscs_path(cscs_path), 3000)
+
+def try_send_cscs_path(cscs_path):
+
     global reconnect_count
     global last_cscs_sent
+    reconnect_count = reconnect_count + 1
 
     if last_cscs_sent == cscs_path:
         return
@@ -126,26 +131,22 @@ def send_cscs_path(cscs_path):
         clientsocket.connect(('localhost', syntaxerPort))
         request = '-cscs_path:{0}'.format(cscs_path)
         clientsocket.send(request.encode('utf-8'))
-        # print('syntaxer\'s cscs.exe is remapped to ', csscriptApp)
+
         last_cscs_sent = cscs_path
         reconnect_count = 0
         print('> Connected to syntaxer server:', time.time()-start_time, 'seconds')
+
     except socket_error as serr:
         # send_cscs_path may be issued before server is ready for the connection
         # so we may need to retry
 
         last_cscs_sent = None
 
-        def do():
-            global reconnect_count
-            reconnect_count = reconnect_count + 1
-            send_cscs_path(cscs_path)
-
         if reconnect_count  < 5:
             print(serr)
             print('Cannot configure syntaxer server with cscs location. Schedule another attempt in 3 seconds.')
-            # print(errno.ECONNREFUSED)
-            sublime.set_timeout(do, 3000)
+            sublime.set_timeout_async(try_send_cscs_path, 3000)
+
         else:
             # just give up. 5 sec should be enough to connect. Meaning there is something
             # more serious than server is not being ready.

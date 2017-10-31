@@ -31,16 +31,16 @@ def on_plugin_loaded():
         try:
             out_file = os.path.join(plugin_dir, "..", "User", 'which.txt')
 
-            with open(out_file, "w") as f: 
+            with open(out_file, "w") as f:
                 popen_redirect_tofile(['which', file], f).wait()
 
-            output = None    
+            output = None
             with open(out_file, "r") as f:
                 output =  f.read().strip()
 
             if os.path.exists(out_file):
                 os.remove(out_file)
-            
+
             return output
 
         except Exception as e:
@@ -58,7 +58,7 @@ def on_plugin_loaded():
                 mono_path = '/usr/local/bin'
             else:
                 mono_path = which("mono")
-        
+
         if mono_path:
             print('Adding mono path to envar PATH.', mono_path)
             os.environ["PATH"] += os.pathsep + mono_path
@@ -88,122 +88,122 @@ current_bin_dest = path.join(bin_dest+'syntaxer_v'+version)
 
 if not os.path.isdir(current_bin_dest):
     os.environ["new_deployment"] = 'true'
- 
+
 # -------------------------
 def clear_old_versions_but(version):
 
     if os.getenv("new_deployment") == 'true':
         try:
-            if os.name == 'nt': 
-                os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is runningif os.name == 'nt': 
+            if os.name == 'nt':
+                os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is runningif os.name == 'nt':
                 os.system('taskkill /f /im syntaxer.exe')     # stop syntaxer
         except:
             pass
-            
-        
+
+
 
     old_syntaxer_exe = path.join(bin_dest, 'syntaxer.exe')
     try:
         os.remove(old_syntaxer_exe)
-    except:    
+    except:
         pass
 
     sub_dirs = [name for name in os.listdir(bin_dest)
            if os.path.isdir(os.path.join(bin_dest, name))]
 
-    for dir in sub_dirs:        
+    for dir in sub_dirs:
         if dir.startswith('syntaxer') and not dir.endswith(version):
             try:
                 shutil.rmtree(path.join(bin_dest, dir))
-            except:    
+            except:
                 pass
 # -------------------------
 def ensure_default_config(csscriptApp):
 
     config_file = path.join(path.dirname(csscriptApp), 'css_config.xml')
 
-    if not path.exists(config_file):        
-        subprocess.Popen(to_args([csscriptApp, '-config:create']), 
-                         stdout=subprocess.PIPE, 
-                         cwd=path.dirname(csscriptApp), 
+    if not path.exists(config_file):
+        subprocess.Popen(to_args([csscriptApp, '-config:create']),
+                         stdout=subprocess.PIPE,
+                         cwd=path.dirname(csscriptApp),
                          shell=True).wait()
 
         updated_config = ''
 
-        with open(config_file, "r") as f: 
+        with open(config_file, "r") as f:
             updated_config  = f.read()
 
-        if os.name == 'nt':    
-            updated_config = updated_config.replace("<useAlternativeCompiler></useAlternativeCompiler>", 
-                                                    "<useAlternativeCompiler>CSSRoslynProvider.dll</useAlternativeCompiler>") 
+        if os.name == 'nt':
+            updated_config = updated_config.replace("<useAlternativeCompiler></useAlternativeCompiler>",
+                                                    "<useAlternativeCompiler>CSSRoslynProvider.dll</useAlternativeCompiler>")
 
             need_explicit_tuple_ref = False
-            if need_explicit_tuple_ref:                 
-                updated_config = updated_config.replace("</defaultRefAssemblies>", 
-                                                        " %syntaxer_dir%"+os.sep+"System.ValueTuple.dll</defaultRefAssemblies>") 
+            if need_explicit_tuple_ref:
+                updated_config = updated_config.replace("</defaultRefAssemblies>",
+                                                        " %syntaxer_dir%"+os.sep+"System.ValueTuple.dll</defaultRefAssemblies>")
             else:
                 updated_config = updated_config.replace(" %syntaxer_dir%"+os.sep+"System.ValueTuple.dll", "")
 
 
-            updated_config = updated_config.replace("<roslynDir></roslynDir>", 
-                                                    "<roslynDir>%syntaxer_dir%</roslynDir>") 
+            updated_config = updated_config.replace("<roslynDir></roslynDir>",
+                                                    "<roslynDir>%syntaxer_dir%</roslynDir>")
 
-        with open(config_file, "w") as file: 
+        with open(config_file, "w") as file:
             file.write(updated_config)
 
     else:
 
-        # update existing config to be compatible with the current cscs.exe 
+        # update existing config to be compatible with the current cscs.exe
         if os.getenv("new_deployment") == 'true':
-            with open(config_file, "r") as f:      
+            with open(config_file, "r") as f:
                 updated_config  = f.read()
             updated_config = updated_config.replace("%syntaxer_dir%"+os.sep+"System.ValueTuple.dll", "")
-            with open(config_file, "w") as file: 
+            with open(config_file, "w") as file:
                 file.write(updated_config)
 
 # -------------------------
 def ensure_default_roslyn_config(csscriptApp):
     if os.getenv("new_deployment") == 'true':
-        if os.name == 'nt':   
-            subprocess.Popen(to_args([csscriptApp, '-config:set:RoslynDir="'+current_bin_dest+'"']), 
-                             stdout=subprocess.PIPE, 
-                             cwd=path.dirname(csscriptApp), 
+        if os.name == 'nt':
+            subprocess.Popen(to_args([csscriptApp, '-config:set:RoslynDir="'+current_bin_dest+'"']),
+                             stdout=subprocess.PIPE,
+                             cwd=path.dirname(csscriptApp),
                              shell=True).wait()
-            subprocess.Popen(to_args([csscriptApp, '-config:set:useAlternativeCompiler=CSSRoslynProvider.dll']), 
-                             stdout=subprocess.PIPE, 
-                             cwd=path.dirname(csscriptApp), 
+            subprocess.Popen(to_args([csscriptApp, '-config:set:useAlternativeCompiler=CSSRoslynProvider.dll']),
+                             stdout=subprocess.PIPE,
+                             cwd=path.dirname(csscriptApp),
                              shell=True).wait()
 
 # -------------------------
 def deploy_shadow_bin(file_name, subdir = None):
-    
-    if not path.exists(bin_dest): 
+
+    if not path.exists(bin_dest):
         os.makedirs(bin_dest)
-        
+
     dest_dir = bin_dest
     if subdir:
         dest_dir = path.join(dest_dir, subdir)
-    
-    if not path.exists(dest_dir): 
+
+    if not path.exists(dest_dir):
         os.makedirs(dest_dir)
 
     src = path.join(bin_src, file_name)
     dest = path.join(dest_dir, file_name)
 
-    try: 
+    try:
         # print('deploying', dest)
         if not path.exists(dest) or os.stat(src).st_size != os.stat(dest).st_size:
             shutil.copy2(src, dest_dir)
         else:
             shutil.copy2(src, dest_dir)
     except Exception as ex :
-        print('deploy_shadow_bin', ex) 
+        print('deploy_shadow_bin', ex)
         pass
     return dest
 # -------------------------
 
-# deploy an initial copy of cscs.exe so syntaxer can start but clear csscriptApp 
-# so it can be later set from settings 
+# deploy an initial copy of cscs.exe so syntaxer can start but clear csscriptApp
+# so it can be later set from settings
 if os.name == 'nt':
     src = path.join(bin_src, 'nuget.win.exe')
     dest = path.join(bin_src, 'nuget.exe')
@@ -212,7 +212,7 @@ if os.name == 'nt':
             os.remove(dest)
         os.rename(src, dest)
 
-else: 
+else:
     src = path.join(bin_src, 'nuget.win.exe')
     if path.exists(src):
         os.remove(src)
@@ -226,13 +226,13 @@ syntaxerPort = settings().get('server_port', 18000)
 
 os.environ["syntaxer_dir"] = path.dirname(syntaxerApp)
 # os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) may need to be the way for future
-print('syntaxer_dir', os.environ["syntaxer_dir"])
+# print('syntaxer_dir', os.environ["syntaxer_dir"])
 clear_old_versions_but(version)
 # -------------------------
 
 def read_engine_config():
     global csscriptApp
-    
+
     deployment_dir = bin_src
     deployment_dir = bin_dest
 
@@ -255,13 +255,13 @@ def print_config():
     print('----------------')
     print('cscs.exe: ', csscriptApp)
     print('syntaxer.exe: ', syntaxerApp)
-    print('syntaxer port: ', syntaxerPort) 
-    print('syntaxcheck_on_save: ', settings().get('syntaxcheck_on_save', True)) 
-    print('server_autostart: ', settings().get('server_autostart', True)) 
+    print('syntaxer port: ', syntaxerPort)
+    print('syntaxcheck_on_save: ', settings().get('syntaxcheck_on_save', True))
+    print('server_autostart: ', settings().get('server_autostart', True))
     print('----------------')
 
-# -------------------------  
-from .imports.utils import *  
+# -------------------------
+from .imports.utils import *
 from .imports.syntaxer import *
 from .imports.setup import *
 
@@ -272,15 +272,15 @@ def get_css_version():
         version = ''
         clr_version = ''
         print('read ver:')
-        
-        # //proc = subprocess.Popen(to_args([csscriptApp, "-ver"]), stdout=subprocess.PIPE, shell=True) 
+
+        # //proc = subprocess.Popen(to_args([csscriptApp, "-ver"]), stdout=subprocess.PIPE, shell=True)
         print(csscriptApp)
         proc = popen_redirect([csscriptApp, "-ver"])
 
         prefix = 'C# Script execution engine. Version'
-        clr_prefix = 'CLR:' 
+        clr_prefix = 'CLR:'
 
-        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):  
+        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
             # print('-',line)
             line = line.strip()
             if prefix in line:
@@ -298,7 +298,7 @@ def get_css_version():
         print(e)
         return (None, None)
 
-          
+
 # =================================================================================
 # TODO
 # Detect upgrade and fresh install for showing readme/help
@@ -308,7 +308,7 @@ formatted_views = {}
 def is_formatted(view):
     if view.id() in formatted_views.keys():
         last_format_time = formatted_views[view.id()]
-        return time.time() - last_format_time < 2    
+        return time.time() - last_format_time < 2
     return False
 
 def mark_as_formatted(view):
@@ -331,12 +331,12 @@ class csscript_new(sublime_plugin.TextCommand):
         if backup_file:
             backup_comment = '// The previous content of this file has been saved into \n' + \
                              '// '+backup_file+' \n'
-        
+
         content = csscript_setup.prepare_new_script().replace('$backup_comment$', backup_comment)
 
-        with open(new_file_path, "w") as file: 
+        with open(new_file_path, "w") as file:
             file.write(content)
-                    
+
         if os.path.exists(new_file_path):
             sublime.active_window().open_file(new_file_path)
 # =================================================================================
@@ -372,7 +372,7 @@ class settings_listener(sublime_plugin.EventListener):
     def on_activated(self, view):
         if not settings_listener.hooked:
             settings_listener.hooked = True
-            
+
             on_plugin_loaded()
 
             self.callback()
@@ -381,7 +381,6 @@ class settings_listener(sublime_plugin.EventListener):
             settings().add_on_change("server_port", self.on_port_changed)
 
             print_config()
-
 
     def on_port_changed(self):
         global syntaxerPort
@@ -396,13 +395,17 @@ class settings_listener(sublime_plugin.EventListener):
             pass
 
     def callback(self):
+        sublime.set_timeout_async(self.process_settings_change, 100)
+
+    def process_settings_change(self):
+
         global csscriptApp
 
         # may be fired when setting are not available yet
         try:
             if csscriptApp != settings().get('cscs_path', '<none>'):
                 read_engine_config()
-                
+
                 # sublime.error_message('About to send '+csscriptApp)
                 set_engine_path(csscriptApp)
 
@@ -411,7 +414,7 @@ class settings_listener(sublime_plugin.EventListener):
                     # This is valid for both both Python and .NET apps hosted by ST3. So suppress execution of 'nuget'
                     # by cscs.exe internally for resolving packages.
                     if os.name != 'nt':
-                        os.environ["NUGET_INCOMPATIBLE_HOST"] = 'true' 
+                        os.environ["NUGET_INCOMPATIBLE_HOST"] = 'true'
                 else:
                     try:
                         os.unsetenv('NUGET_INCOMPATIBLE_HOST')
@@ -423,16 +426,13 @@ class settings_listener(sublime_plugin.EventListener):
 
                 if os.getenv("new_deployment") != 'true' and os.getenv("engine_preloaded") != 'true':
                     os.environ["engine_preloaded"] = 'true'
-                    # Preloading only improves the initial overhead for compiling but not for the intellisense. 
-                    # Important: must to wait a bit to allow Roslyn binaries to be done copied (if they are being moved)
-                    # Otherwise Roslyn cscs.exe may throw.        
-                    # A typical case of th race condition is when cs-script.py has been updated during the package
-                    # upgrade ans this callback is being invoked because of the package setting file being replaced.                       
+                    # Preloading only improves the initial overhead for compiling but not for the intellisense.
+                    # Important: must to wait a bit to allow Roslyn binaries to be done copied (if they ar being moved)
                     sublime.set_timeout(preload_engine, 5000)
 
         except:
             pass
-            
+
 # =================================================================================
 # C#/CS-Script completion service
 # =================================================================================
@@ -464,15 +464,15 @@ class csscript_listener(sublime_plugin.EventListener):
             if is_output_panel(view):
                 if 'by' in args.keys() and args['by'] == 'words':
                     try:
-                        point = view.sel()[0].begin() 
+                        point = view.sel()[0].begin()
                         line_region = view.line(point)
                         line_text = view.substr(line_region)
-                        
+
                         view.sel().clear()
                         view.sel().add(line_region)
 
                         sublime.status_message('Navigating to clicked item...')
-                        
+
                         navigate_to_file_ref(line_text)
                     except:
                         pass
@@ -487,13 +487,13 @@ class csscript_listener(sublime_plugin.EventListener):
 
         if is_csharp(view):
             # >>> view.scope_name(view.sel()[0].begin())
-            
+
             # string scope
             # 'source.cs meta.class.source.cs meta.class.body.source.cs meta.method.source.cs meta.method.body.source.cs meta.method-call.source.cs string.quoted.double.source.cs '
-            
+
             # comment scope
             # 'source.cs meta.class.source.cs meta.class.body.source.cs meta.method.source.cs meta.method.body.source.cs comment.line.double-slash.source.cs '
-            
+
             # comment.line.double-slash.source.cs
             # string.quoted.double.source.cs
             point = view.sel()[0].begin()
@@ -510,7 +510,7 @@ class csscript_listener(sublime_plugin.EventListener):
                     if settings().get('auto_trigger_tooltip', True):
                         view.window().run_command("csscript_pop_tooltip")
     # -----------------
-    def on_post_save(self, view): 
+    def on_post_save(self, view):
         # if not is_csharp(view):m
         #     print('---------------')
         # clear_console()
@@ -522,7 +522,7 @@ class csscript_listener(sublime_plugin.EventListener):
             # view may be engaged in 'focus changing' activity (e.g. CodeMap)
             # for i in range(5):
             #     if not is_csharp(sublime.active_window().active_view()):
-            #         time.sleep(1) 
+            #         time.sleep(1)
 
             active_view = sublime.active_window().active_view()
             if active_view == view:
@@ -540,26 +540,26 @@ class csscript_listener(sublime_plugin.EventListener):
     # -----------------
     def on_query_completions(self, view, prefix, locations):
         curr_doc = view.file_name()
-        
+
         if curr_doc.endswith(".cs"):
-            
+
             completions = []
-            
-            if not is_valid_selection(view): 
+
+            if not is_valid_selection(view):
                 sublime.status_message('Incompatible selection')
                 return completions
 
             (curr_doc, location, as_temp_file) = get_saved_doc(view)
-            
+
             response = send_completion_request(curr_doc, location)
-            if as_temp_file: 
+            if as_temp_file:
                 os.remove(curr_doc)
-            
+
             completions = self.parse_response(response)
             if completions:
                 return (completions, sublime.INHIBIT_EXPLICIT_COMPLETIONS | sublime.INHIBIT_WORD_COMPLETIONS)
     # -----------------
-    def parse_response(self, response): 
+    def parse_response(self, response):
 
         if not response:
             return None
@@ -591,7 +591,7 @@ class csscript_show_config(sublime_plugin.TextCommand):
         ensure_default_config(csscriptApp)
         config_file = path.join(path.dirname(csscriptApp), 'css_config.xml')
         sublime.active_window().open_file(config_file)
-    
+
 # =================================================================================
 # CS-Script code formatter service
 # =================================================================================
@@ -609,13 +609,13 @@ class csscript_format_code(CodeViewTextCommand):
         (curr_doc, file_location, as_temp_file) = get_saved_doc(self.view)
 
         response = send_formatting_request(curr_doc, file_location)
-        
-        if as_temp_file: 
+
+        if as_temp_file:
             os.remove(curr_doc)
-        
+
         if response.startswith('<error>'):
             print('Formatting error:', response.replace('<error>', ''))
-        else:    
+        else:
             parts = response.split('\n', 1)
 
             new_file_location = int(parts[0])
@@ -625,16 +625,16 @@ class csscript_format_code(CodeViewTextCommand):
             new_text = formatted_code.replace('\r', '')
 
             self.view.replace(edit, sublime.Region(0, self.view.size()), new_text)
-            # with open(self.view.file_name(), "w") as file: 
+            # with open(self.view.file_name(), "w") as file:
             #     file.write(formatted_code)
 
-            # surprisingly mapping of selection is not required. ST3 does it by itself 
+            # surprisingly mapping of selection is not required. ST3 does it by itself
             # self.view.sel().clear()
-            # self.view.sel().add(sublime.Region(new_text_location, new_text_location))          
+            # self.view.sel().add(sublime.Region(new_text_location, new_text_location))
 
             # print('formatting done')
             # sublime.active_window().run_command("save")
-            
+
 
 # =================================================================================
 # CS-Script async replecement service
@@ -658,7 +658,7 @@ class csscript_resolve_using(CodeViewTextCommand):
     def run(self, edit, **args):
         view = self.view
         self.edit = edit
-        self.point = None    
+        self.point = None
 
         self.first_suffestion = False
 
@@ -681,7 +681,7 @@ class csscript_resolve_using(CodeViewTextCommand):
 
             view = self.view
 
-            word_region = view.word(self.point)   
+            word_region = view.word(self.point)
             word_to_resolve = view.substr(word_region)
             # print('view', view.file_name())
 
@@ -690,14 +690,14 @@ class csscript_resolve_using(CodeViewTextCommand):
             response = send_resolve_using_request(saved_doc, word_to_resolve)
             busy_indicator.hide()
 
-            if as_temp_file: 
+            if as_temp_file:
                 os.remove(saved_doc)
-            
+
             if response == '<null>':
                 pass
             elif response.startswith('<error>'):
-                print(response.replace('<error>', 'CS-Script error: '))                    
-            else:    
+                print(response.replace('<error>', 'CS-Script error: '))
+            else:
                 items = response.split('\n')
                 def on_done(index):
                     if index != -1:
@@ -705,7 +705,7 @@ class csscript_resolve_using(CodeViewTextCommand):
                             line  = self.view.substr(region)
                             if not line.startswith("//"):
                                 # cannot use 'self.view.replace(self.edit...' as edit is already invalid
-                                # so need to start a new command that ctreats 'edit'; Remember, 'edit' cannot be created from code 
+                                # so need to start a new command that ctreats 'edit'; Remember, 'edit' cannot be created from code
                                 # self.view.replace(self.edit, sublime.Region(start, start), 'using '+items[index]+';'+'\n')
                                 region = str(region.begin())+','+str(region.begin())
                                 replacement = 'using '+items[index]+';'+'\n'
@@ -715,7 +715,7 @@ class csscript_resolve_using(CodeViewTextCommand):
 
                 if self.first_suffestion:
                     on_done(0)
-                else:                
+                else:
                     self.view.show_popup_menu(items, on_done, 1)
 
         except Exception as err:
@@ -732,7 +732,7 @@ class csscript_pop_tooltip(CodeViewTextCommand):
     def run(self, edit):
         self.view.hide_popup()
         point = self.view.sel()[0].begin()
-        
+
         left_char = self.view.substr(point-1)
         right_char = self.view.substr(point)
         line = self.view.line(point)
@@ -743,7 +743,7 @@ class csscript_pop_tooltip(CodeViewTextCommand):
         if line_str.startswith('//css'):
             csscript_show_tooltip(self.view,  line.begin()).do()
             return
-            
+
         if left_char == ' ' or left_char == '(' or left_char == ',' or right_char == ')':
             new_point = point - 1
             while self.view.substr(new_point) != '(':
@@ -752,10 +752,10 @@ class csscript_pop_tooltip(CodeViewTextCommand):
                     new_point = -1
                     break
 
-        if new_point != -1: 
+        if new_point != -1:
             hint = self.view.substr(sublime.Region(point, new_point))
             csscript_show_tooltip(self.view,  new_point+1, hint).do()
-        else:            
+        else:
             csscript_show_tooltip(self.view,  point).do()
 
 # =================================================================================
@@ -775,12 +775,12 @@ class csscript_find_references(CodeViewTextCommand):
         if as_temp_file:
             os.remove(saved_doc)
             response = response.replace(saved_doc, self.view.file_name())
-     
+
         if response == '<null>':
             pass
         elif response.startswith('<error>'):
-            print(response.replace('<error>', 'CS-Script error: '))                    
-        else:    
+            print(response.replace('<error>', 'CS-Script error: '))
+        else:
             output_view_write_line(out_panel, response)
 
 # =================================================================================
@@ -809,7 +809,7 @@ class csscript_show_output(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
          output_view_show(out_panel)
-         
+
 # =================================================================================
 # CS-Script project resolver service
 # =================================================================================
@@ -819,7 +819,7 @@ class csscript_about(sublime_plugin.TextCommand):
         def handle_line(line):
             output_view_write_line(out_panel, line)
         run_cscs(["-ver"], handle_line, header='CS-Script.ST3 - C# intellisense and execution plugin (v'+version+')')
-        
+
 # =================================================================================
 # CS-Script project resolver service
 # =================================================================================
@@ -827,7 +827,7 @@ class csscript_about(sublime_plugin.TextCommand):
 class csscript_list_proj_files(CodeViewTextCommand):
     # -----------------
     def handle_line(self, line):
-        curr_prefix = line.split(':', 1)[0]    
+        curr_prefix = line.split(':', 1)[0]
         if curr_prefix != self.prefix:
             self.prefix = curr_prefix
             # output_view_write_line(out_panel, '-------')
@@ -835,8 +835,8 @@ class csscript_list_proj_files(CodeViewTextCommand):
     # -----------------
     def run(self, edit):
         view = self.view
-        self.prefix = 'file' 
-        
+        self.prefix = 'file'
+
         sublime.status_message('Checking script deficiencies for "'+self.view.file_name()+'"')
 
         if self.view.is_dirty():
@@ -846,7 +846,7 @@ class csscript_list_proj_files(CodeViewTextCommand):
             self.do()
     # -----------------
     def do(self):
-        
+
         def on_done():
             output_view_write_line(out_panel, "---------------------\n[Script dependencies]")
 
@@ -857,12 +857,12 @@ class csscript_list_proj_files(CodeViewTextCommand):
 class csscript_list_proj_sources(CodeViewTextCommand):
     # -----------------
     def handle_line(self, line):
-        curr_prefix = line.split(':', 1)[0]    
+        curr_prefix = line.split(':', 1)[0]
         if curr_prefix != self.prefix:
             self.prefix = curr_prefix
             # don't separate for now
             # output_view_write_line(out_panel, '-------')
-        
+
         if not line.endswith('dbg.cs'):
             if curr_prefix.startswith('file'):
                 text = line.replace("file:", '')
@@ -875,7 +875,7 @@ class csscript_list_proj_sources(CodeViewTextCommand):
     # -----------------
     def run(self, edit):
         view = self.view
-        self.prefix = 'file' 
+        self.prefix = 'file'
         self.prev_line = None
         sublime.status_message('Checking script dependencies for "'+self.view.file_name()+'"')
 
@@ -886,7 +886,7 @@ class csscript_list_proj_sources(CodeViewTextCommand):
             self.do()
     # -----------------
     def do(self):
-        
+
         def on_done():
             if self.prev_line:
                 output_view_write_line(out_panel, last_item_boxed_prefix + self.prev_line)
@@ -907,22 +907,22 @@ class csscript_syntax_check(CodeViewTextCommand):
     def run(self, edit, **args):
 
         view = self.view
-        
+
         sublime.status_message('Checking syntax of "'+view.file_name()+'"')
-        
+
         if view.is_dirty() and not 'skip_saving' in args.keys():
             sublime.active_window().run_command("save")
 
         curr_doc = view.file_name()
 
         clear_and_print_result_header(curr_doc)
-            
+
         if not path.exists(csscriptApp):
             print('Error: cannot find CS-Script launcher - ', csscriptApp)
         elif not curr_doc:
             print('Error: cannot find out the document path')
-        else:    
-            
+        else:
+
             clear_and_print_result_header(curr_doc)
             if '//css_nuget' in view.substr(sublime.Region(0, view.size())):
                 output_view_write_line(out_panel, "Resolving NuGet packages may take time...")
@@ -931,7 +931,7 @@ class csscript_syntax_check(CodeViewTextCommand):
 
             proc = popen_redirect([csscriptApp, "-nl", '-l', "-check", curr_doc])
             first_result = True
-            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):  
+            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
                 line = line.strip()
                 if first_result:
                     first_result = False
@@ -940,11 +940,11 @@ class csscript_syntax_check(CodeViewTextCommand):
                 output_view_write_line(out_panel, line)
                 error_info = extract_location(line.strip())
                 if error_info:
-                    
+
                     file, line, column, context = error_info
                     file = os.path.abspath(file)
                     if file not in csscript_syntax_check.errors.keys():
-                        csscript_syntax_check.errors[file] = []    
+                        csscript_syntax_check.errors[file] = []
 
                     csscript_syntax_check.errors[file].append((line, column, context))
             output_view_write_line(out_panel, "[Syntax check]")
@@ -952,7 +952,7 @@ class csscript_syntax_check(CodeViewTextCommand):
             csscript_syntax_check.show_errors()
 
     # -----------------
-    def has_errors(file): 
+    def has_errors(file):
         for key in csscript_syntax_check.errors.keys():
             if key.lower() == file.lower():
                 return True
@@ -966,33 +966,33 @@ class csscript_syntax_check(CodeViewTextCommand):
                     ln, col, cxt = error_info
                     if ln == line:
                         errors.append(error_info)
-                
-                if len(errors) > 0: 
+
+                if len(errors) > 0:
                     break
-        
+
         return errors
     # -----------------
     def clear_errors():
-        
+
         for view in sublime.active_window().views():
             if view.file_name():
                 view.erase_regions("cs-script.errors")
-         
+
         csscript_syntax_check.errors.clear()
     # -----------------
     def show_errors():
         error_strong_appearence = settings().get('error_strong_appearence', False)
         error_strong_appearence = True
-        for file in csscript_syntax_check.errors.keys(): 
+        for file in csscript_syntax_check.errors.keys():
             view = find_file_view(file)
             if view:
                 view.erase_regions("cs-script.errors")
 
                 regions = []
 
-                for line, column, context in csscript_syntax_check.errors[file]: 
+                for line, column, context in csscript_syntax_check.errors[file]:
                     pt = view.text_point(line-1, column-1)
-                    regions.append(view.word(pt)) 
+                    regions.append(view.word(pt))
 
                 # scope = settings().get('cs-script.syntaxerror_scope')
                 # https://www.sublimetext.com/docs/3/scope_naming.html
@@ -1005,7 +1005,7 @@ class csscript_syntax_check(CodeViewTextCommand):
                 else:
                     flags = sublime.DRAW_SQUIGGLY_UNDERLINE|sublime.DRAW_NO_FILL|sublime.DRAW_NO_OUTLINE
                 view.add_regions("cs-script.errors", regions, scope, icon, flags)
-                
+
 # =================================================================================
 # C#/CS-Script kill running script service
 # =================================================================================
@@ -1020,7 +1020,7 @@ class csscript_kills_script(sublime_plugin.TextCommand):
              panel = self.view.window().find_output_panel(panel_name[len('output.'):])
              return panel is not None and panel.id() == self.view.id()
         else:
-            return False            
+            return False
     # -----------------
     def run(self, edit):
         if csscript_execute_and_redirect.running_process:
@@ -1028,14 +1028,14 @@ class csscript_kills_script(sublime_plugin.TextCommand):
                 pid = csscript_execute_and_redirect.running_process.pid
 
                 sublime.status_message('Terminating...')
-                
+
                 # extremely important to kill all process children
                 if os.name == 'posix':
                     subprocess.Popen(['pkill', '-TERM', '-P', str(pid)])
                 else:
                     send_pkill_request(pid, 'cscs')
             except:
-                pass          
+                pass
 
 # =================================================================================
 # CS-Script tooltip service
@@ -1067,7 +1067,7 @@ class csscript_show_tooltip():
                 def terminate(arg):
                     sublime.status_message('Terminating...')
                     self.view.hide_popup()
-                    
+
                     # extremely important to kill all process children
                     if os.name == 'posix':
                         subprocess.Popen(['pkill', '-TERM', '-P', str(pid)])
@@ -1093,7 +1093,7 @@ class csscript_show_tooltip():
 
         file = self.view.file_name()
         line, column = self.view.rowcol(self.point)
-        
+
         errors = ''
         for line, column, error in csscript_syntax_check.get_errors(file, line+1):
             errors = errors + error.strip() + '<br>'
@@ -1114,15 +1114,15 @@ class csscript_show_tooltip():
 
         if csscript_resolve_using.inprogress: return
 
-        # check if we are over the error region 
+        # check if we are over the error region
         # NOTE: view.text_point and view.rowcol operate in 0-based units and C# compiler errors are reported in 1-based ones
         mouse_line, mouse_column = self.view.rowcol(self.point)
         mouse_region = self.view.word(self.point)
-        
+
         for line, column, error in csscript_syntax_check.get_errors(self.view.file_name(), mouse_line+1):
             error_region = self.view.word(self.view.text_point(line-1,column-1))
             if error_region == mouse_region:
-                
+
                 link = ''
                 # doesn't work yet
                 if 'CS0103' in error:
@@ -1135,27 +1135,27 @@ class csscript_show_tooltip():
                              p { margin-top: 0;}
                              </style>
                             <p>%s</p>
-                            %s   
+                            %s
                         </body>
                     """ % (error, link)
                 # html = '<body id=show-scope>'+error+'</body>'
-                self.view.show_popup(html, location=self.point, flags=sublime.HIDE_ON_MOUSE_MOVE_AWAY, max_width=600, on_navigate=lambda x: self._try_to_fix(x))                
+                self.view.show_popup(html, location=self.point, flags=sublime.HIDE_ON_MOUSE_MOVE_AWAY, max_width=600, on_navigate=lambda x: self._try_to_fix(x))
                 return
 
 
         (curr_doc, location, as_temp_file) = get_saved_doc(self.view, self.location)
         text = send_tooltip_request(curr_doc, location, self.hint, settings().get('auto_tooltip_light_content', False))
-        
+
         if as_temp_file:
             os.remove(curr_doc)
-        
+
         if text:
             if text == '<null>':
                 # print('tooltip null')
                 return
             elif text.startswith('<error>'):
-                print(text.replace('<error>', 'CS-Script generate tooltip error: '))                    
-            else:    
+                print(text.replace('<error>', 'CS-Script generate tooltip error: '))
+            else:
                 self._show(text, self.point)
     # -----------------
     def _try_to_fix(self, point):
@@ -1164,10 +1164,10 @@ class csscript_show_tooltip():
         pass
     # -----------------
     def _go_to_definition(self):
-        
+
         self.view.hide_popup()
 
-        #unfortunately setting selection doesn't work when invoked from OnPopupHide callback 
+        #unfortunately setting selection doesn't work when invoked from OnPopupHide callback
         # self.view.sel().clear()
         # self.view.sel().add(sublime.Region(self.location, self.location))
         # sublime.active_window().run_command("csscript_goto_definition")
@@ -1177,7 +1177,7 @@ class csscript_show_tooltip():
     # -----------------
     def decorate(self, text):
         text = text.replace('\r', '')
-        
+
 
         def deco_section(text, style):
             parts = text.split(':', 1)
@@ -1198,7 +1198,7 @@ class csscript_show_tooltip():
             exc = ''
             pos = doc.find('Exceptions:')
             if pos != -1:
-                exc = '<br>'+deco_section(doc[pos:], 'exc')+'<br>\n' 
+                exc = '<br>'+deco_section(doc[pos:], 'exc')+'<br>\n'
                 doc = doc[:pos].strip()
 
             doc = '<br><span class="doc">'+doc+'</span><br>'
@@ -1215,14 +1215,14 @@ class csscript_show_tooltip():
 
         text_value = html.escape(text, quote=False)
         text_value = self.decorate(text_value)
-        text_value = text_value.replace('\n', '<br>')    
+        text_value = text_value.replace('\n', '<br>')
 
         html = """
             <body id=show-scope>
                 <style>
                     body { margin: 0; padding: 5;  }
                     p { margin-top: 0; }
-                    a { 
+                    a {
                         font-family: sans-serif;
                         font-size: 1.05rem;
                     }
@@ -1281,12 +1281,12 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
             csscript_listener.suppress_post_save_checking = True
             sublime.active_window().run_command("save")
 
-        curr_doc = self.view.file_name()    
+        curr_doc = self.view.file_name()
 
-        def run(): 
+        def run():
             script = curr_doc
             clear_and_print_result_header(self.view.file_name())
-            
+
             process = popen_redirect([csscriptApp, "-nl", '-l', script])
             output_view_write_line(out_panel, '[Started pid: '+str(process.pid)+']', True)
             csscript_execute_and_redirect.running_process = process
@@ -1298,21 +1298,21 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
                         output_view_append(out_panel, output)
                 except UnicodeDecodeError:
                     append_output('<Decoding error. You may want to adjust script output encoding in settings.>')
-                    # process.terminate()    
+                    # process.terminate()
 
             while process.poll() is None: # may not read the last few lines of output
-                output = process.stdout.readline() 
+                output = process.stdout.readline()
                 process_line(output)
 
             while (True): # drain any remaining data
                 try:
-                    output = process.stdout.readline() 
+                    output = process.stdout.readline()
                     if output == b'':
                         break;
                     process_line(output, ignore_empty=True)
                 except :
                     pass
-            csscript_execute_and_redirect.running_process = None    
+            csscript_execute_and_redirect.running_process = None
             output_view_write_line(out_panel, "[Execution completed]")
 
         #must be done in a separate thread otherwise line rendering is suspended until process exits
@@ -1325,8 +1325,8 @@ class csscript_build_exe(CodeViewTextCommand):
     # -----------------
     def run(self, edit):
         view = self.view
-        self.prefix = 'file' 
-        
+        self.prefix = 'file'
+
         sublime.status_message('Building executable from the script "'+self.view.file_name()+'"')
 
         if self.view.is_dirty():
@@ -1339,10 +1339,10 @@ class csscript_build_exe(CodeViewTextCommand):
         script_file = self.view.file_name()
         pre, ext = os.path.splitext(script_file)
         exe_file = pre + '.exe'
-        
+
         def handle_line(line):
             output_view_write_line(out_panel, line)
-        
+
         def on_done():
             if path.exists(exe_file):
                 output_view_write_line(out_panel,'Script is converted into executable ' + exe_file)
@@ -1370,13 +1370,13 @@ class csscript_execute_and_wait(CodeViewTextCommand):
                 env['SCRIPT_FILE'] = curr_doc
 
                 cwd = os.path.dirname(curr_doc)
-                
-                css_command = to_args([csscriptApp, "-nl", '-l', '%SCRIPT_FILE%'])[0] # will wrap into quotations 
+
+                css_command = to_args([csscriptApp, "-nl", '-l', '%SCRIPT_FILE%'])[0] # will wrap into quotations
                 command = "bash -c \"{0} ; exec bash\"".format(css_command)
                 args =[TerminalSelector.get(), '-e', command]
 
                 if 'NUGET_INCOMPATIBLE_HOST' in env:
-                    del env['NUGET_INCOMPATIBLE_HOST'] 
+                    del env['NUGET_INCOMPATIBLE_HOST']
 
                 subprocess.Popen(args, cwd=cwd, env=env)
 
@@ -1384,22 +1384,22 @@ class csscript_execute_and_wait(CodeViewTextCommand):
 # CS-Script go-to-next-result service
 # =================================================================================
 class csscript_next_result(sublime_plugin.WindowCommand):
-    # -----------------    
+    # -----------------
     def run(self):
         view_name = sublime.active_window().active_panel()
         if not view_name:
             return
-            
+
         if view_name == 'output.exec':
             self.window.run_command('next_result')
-        else:    
+        else:
             if view_name.startswith('output.'):
                 view_name = view_name.replace('output.', '')
 
             view = sublime.active_window().find_output_panel(view_name)
-                
+
             if not view or not view.window():
-                return 
+                return
 
             caret_point = view.sel()[0].begin()
             caret_line_region = view.line(caret_point)
@@ -1415,14 +1415,14 @@ class csscript_next_result(sublime_plugin.WindowCommand):
                     if next_location_index == -1 and rg == caret_line_region:
                         next_location_index = len(locations)
                     locations.append((rg, line))
-                        
+
             if len(locations) > 0:
                 next_location_index = next_location_index + 1
 
                 if next_location_index >= len(locations):
                     next_location_index = 0
 
-                line_region, line_text = locations[next_location_index]    
+                line_region, line_text = locations[next_location_index]
 
                 view.sel().clear()
                 view.sel().add(line_region)
@@ -1435,40 +1435,40 @@ class csscript_next_result(sublime_plugin.WindowCommand):
 # =================================================================================
 class csscript_goto_definition(CodeViewTextCommand):
     # -----------------
-    def run(self, edit): 
+    def run(self, edit):
         view = self.view
         curr_doc = self.view.file_name()
         if curr_doc.endswith(".cs"):
-            
+
             if not is_valid_selection(self.view):
-                sublime.status_message('Incompatible selection') 
+                sublime.status_message('Incompatible selection')
                 return
-            
+
             (curr_doc, location, as_temp_file) = get_saved_doc(view)
-            
+
             csscript_goto_definition.do(curr_doc, location, as_temp_file)
     # -----------------
-    def do(curr_doc, location, as_temp_file): 
+    def do(curr_doc, location, as_temp_file):
             response = send_resolve_request(curr_doc, location)
 
             if as_temp_file:
                 os.remove(curr_doc)
 
-            path = csscript_goto_definition.parse_response(response)   
+            path = csscript_goto_definition.parse_response(response)
             if path:
                 fiel_name = os.path.basename(path).split(':')[0].lower()
-                
+
                 if fiel_name.endswith('.dll') or fiel_name.endswith('.exe'):
                     dir_path = os.path.dirname(path)
                     sublime.active_window().run_command('open_dir', { 'dir': dir_path })
                 else:
-                    sublime.active_window().open_file(path, sublime.ENCODED_POSITION)    
+                    sublime.active_window().open_file(path, sublime.ENCODED_POSITION)
     # -----------------
-    def parse_response(response): 
+    def parse_response(response):
         if not response:
             return None
 
-        error = None    
+        error = None
         fileName = None
         lineNum = None
 
@@ -1485,9 +1485,9 @@ class csscript_goto_definition(CodeViewTextCommand):
 
         if error:
             print(error)
-        elif fileName:    
+        elif fileName:
             if fileName.endswith('.tmp'):
-                possible_oriuginal_file = fileName[:-4] 
+                possible_oriuginal_file = fileName[:-4]
                 if os.path.exists(possible_oriuginal_file):
                     fileName = possible_oriuginal_file
 
@@ -1500,7 +1500,7 @@ class csscript_goto_definition(CodeViewTextCommand):
 class csscript_show_output_panel(sublime_plugin.WindowCommand):
     # -----------------
     def run(self):
-        view = sublime.active_window().active_view() 
+        view = sublime.active_window().active_view()
         if sublime.active_window().active_panel() == 'output.'+out_panel:
             output_view_hide(out_panel)
         else:
