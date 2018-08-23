@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.7' # build 0
+version = '1.2.8' # build 0
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
@@ -223,6 +223,7 @@ csscriptApp = None
 deploy_shadow_bin('CSSRoslynProvider.dll')
 syntaxerApp = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
 syntaxerPort = settings().get('server_port', 18000)
+showTooltipOverGutter = settings().get('show_tooltip_over_gutter', true)
 
 os.environ["syntaxer_dir"] = path.dirname(syntaxerApp)
 # os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) may need to be the way for future
@@ -456,7 +457,7 @@ class csscript_listener(sublime_plugin.EventListener):
         elif is_csharp(view):
             if hover_zone == sublime.HOVER_TEXT:
                 csscript_show_tooltip(view, point).do()
-            if hover_zone == sublime.HOVER_GUTTER:
+            if showTooltipOverGutter and hover_zone == sublime.HOVER_GUTTER:
                 csscript_show_tooltip(view, point).do_gutter()
     # -----------------
     def on_post_text_command(self, view, command_name, args):
