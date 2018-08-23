@@ -223,7 +223,7 @@ csscriptApp = None
 deploy_shadow_bin('CSSRoslynProvider.dll')
 syntaxerApp = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
 syntaxerPort = settings().get('server_port', 18000)
-showTooltipOverGutter = settings().get('show_tooltip_over_gutter', true)
+showTooltipOverGutter = settings().get('show_tooltip_over_gutter', True)
 
 os.environ["syntaxer_dir"] = path.dirname(syntaxerApp)
 # os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) may need to be the way for future
