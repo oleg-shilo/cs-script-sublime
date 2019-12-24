@@ -7,6 +7,7 @@
     "auto_tooltip_light_content":true,
     "error_strong_appearance": true,
     "format_on_save": true,
+    "show_tooltip_over_gutter": true,
     "syntaxcheck_on_save": false,
     "simple_output_header": false,
     "cscs_path": "./cscs.exe"

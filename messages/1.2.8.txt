@@ -1,0 +1,12 @@
+Features/Changes:
+
+- Fixed incorrectly versioned package.
+- Improved compiler Roslyn preloading algorithm.
+- Issue #1. Improved plugin loading performance. The initialization is now done in a separate thread.
+
+
+*********************************************************************************
+NOTE: Due to the ST3 plugin hosting limitations some Python modules need to be fully
+re-initialized during upgrades. Thus it is recommended to restart Sublime Text
+before you start using the CS-Script plugin.
+*********************************************************************************
