@@ -13,7 +13,7 @@ plugin_dir = path.dirname(path.dirname(__file__))
 # =================================================================================
 # Sublime utils
 # =================================================================================
-def get_output_view(name): 
+def get_output_view(name):
     view = sublime.active_window().find_output_panel(name)
     if not view:
         view = sublime.active_window().create_output_panel(name)
@@ -22,15 +22,15 @@ def get_output_view(name):
         # view.assign_syntax('Packages/Text/Plain text.tmLanguage')
     return view
 # -----------------
-def output_view_show(name): 
+def output_view_show(name):
     view = get_output_view(name) # to ensure it's created
     sublime.active_window().run_command("show_panel", {"panel": "output."+name})
 # -----------------
-def output_view_hide(name): 
+def output_view_hide(name):
     view = get_output_view(name) # to ensure it's created
     sublime.active_window().run_command("hide_panel", {"panel": "output."+name})
 # -----------------
-def output_view_toggle(name): 
+def output_view_toggle(name):
     view = get_output_view(name) # to ensure it's created
     sublime.active_window().run_command("show_panel", {"panel": "output."+name, "toggle": True})
 # -----------------
@@ -43,16 +43,16 @@ def output_view_write_line(name, text, move_caret_to_end=False):
 # -----------------
 def output_view_append(name, output):
     output_view_write_line(name, output.rstrip())
-    
+
     # no need to scroll as "view.run_command('append'..." of output_view_write_line
     # already does it. What is actually quite annoing as no scrolling contron from plugin is possible.
-    # view = get_output_view(name) 
+    # view = get_output_view(name)
     # view.show(view.size()-1)
 # -----------------
 def output_view_clear(name):
     view = get_output_view(name) # to ensure it's created
     view.run_command('select_all')
-    view.run_command('right_delete') 
+    view.run_command('right_delete')
 # -----------------
 def is_output_view_visible(name):
     view = sublime.active_window().get_output_panel("output."+name)
@@ -64,7 +64,7 @@ def is_output_view_visible(name):
 def extract_location(reference):
     # e:\script.cs(20,7): error CS1002: ; expected
     # file: e:\script.cs
-    try:    
+    try:
         if reference.startswith('file:'):
             reference = reference.replace('file:', '').strip()
 
@@ -75,7 +75,7 @@ def extract_location(reference):
         if end != -1:
             context = reference[end+2:]
             reference = reference[:end]
-            pos = reference.rfind('(') 
+            pos = reference.rfind('(')
             if pos != -1:
                 location = reference[pos+1:].split(',')
 
@@ -103,7 +103,7 @@ def find_file_view(file_name):
 
         if is_win:
             viewPath = viewPath.lower()
-            
+
         if pattern == viewPath:
             return view
     return None
@@ -115,11 +115,11 @@ def active_primary_view():
     return None
 # -----------------
 def is_output_panel(view):
-    
+
     # return view == sublime.active_window().active_panel() # not reliable
     if view == sublime.active_window().find_output_panel('exec'):
         return True
-        
+
     return view.file_name() == None and view.name() == ''
 
 # -----------------
@@ -127,7 +127,7 @@ def get_saved_doc(view, location = -1):
     if location == -1:
         if len(view.sel()) > 0:
             location = view.sel()[0].begin()
-            
+
     location = to_file_pos(view, location)
     as_temp_file = view.is_dirty()
     if as_temp_file:
@@ -136,20 +136,20 @@ def get_saved_doc(view, location = -1):
     else:
         return (view.file_name(), location, as_temp_file)
 # -----------------
-def show_console(): 
+def show_console():
     sublime.active_window().run_command("show_panel", {"panel": "console", "toggle": False})
 # -----------------
 def is_csharp(view):
     file_name = view.file_name()
     if  file_name:
-        return file_name.lower().endswith(".cs")
-    return False  
+        return file_name.lower().endswith(".cs") or file_name.lower().endswith(".csx")
+    return False
 # -----------------
-def clear_console(): 
-    print('\n\n\n\n\n\n\n') 
+def clear_console():
+    print('\n\n\n\n\n\n\n')
 # -----------------
 def to_text_pos(text, location):
-    # For text position ST always ignores '\r' while file can have it 
+    # For text position ST always ignores '\r' while file can have it
     # May need to be reworked to support Mac
     pos = 0
     count = 0
@@ -163,17 +163,17 @@ def to_text_pos(text, location):
 
     return location-count
 # -----------------
-def to_file_pos(view, location): 
-    pos = location 
+def to_file_pos(view, location):
+    pos = location
     if view.line_endings() == 'Windows':
-        (row,col) = view.rowcol(location) #on win every line break has extra character which sublime doesn't count 
+        (row,col) = view.rowcol(location) #on win every line break has extra character which sublime doesn't count
         pos += row
     return pos
 # -----------------
-def get_text(view): 
+def get_text(view):
     text = view.substr(sublime.Region(0, view.size()))
     if view.line_endings() == 'Windows':
-        text = text.replace('\n', '\r\n') #Roslyn on Win expects /r/n but Sublime on Win still operates with /n only 
+        text = text.replace('\n', '\r\n') #Roslyn on Win expects /r/n but Sublime on Win still operates with /n only
     return text
 # -----------------
 def save_as_temp(view):
@@ -192,10 +192,10 @@ def is_valid_selection(view):
         return False
     elif not region.empty():
         return False
-    else:    
-        return True        
+    else:
+        return True
 # -----------------
-def normalize(file, line, column): 
+def normalize(file, line, column):
     if file.endswith(".g.csx") or file.endswith(".g.cs") and "CSSCRIPT\\Cache" in file:
         dir = os.path.dirname(file)
         info_file = os.path.join(dir, "css_info.txt")
@@ -218,7 +218,7 @@ def normalize(file, line, column):
 
                     file = logical_file
 
-    return (file, line, column)            
+    return (file, line, column)
 # -----------------
 # For TerminalSelector the all credit goes to "Terminal" plugin: https://packagecontrol.io/packages/Terminal
 # Copyright (c) 2011 Will Bond
@@ -271,21 +271,21 @@ def navigate_to_file_ref(reference):
         reference = reference.replace(item_boxed_prefix, '').strip()
     if reference.startswith(last_item_boxed_prefix):
         reference = reference.replace(last_item_boxed_prefix, '').strip()
-    
+
     if reference.startswith('csscript.CompilerException: '):
         reference = reference.replace('csscript.CompilerException: ', '').strip()
 
     end = reference.find('):')
     if end != -1:
         reference = reference[:end]
-        pos = reference.rfind('(') 
+        pos = reference.rfind('(')
         if pos != -1:
             location = reference[pos+1:].split(',')
 
             file = reference[:pos]
             line = int(location[0])
             column = int(location[1])
-            
+
             file, line, column = normalize(file, line, column)
 
             sublime.active_window().open_file('{0}:{1}:{2}'.format(file, line, column), sublime.ENCODED_POSITION)

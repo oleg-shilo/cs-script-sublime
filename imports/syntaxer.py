@@ -194,6 +194,7 @@ def send_formatting_request(file, location):
     return send_syntax_request(file, location, 'format')
 # -----------------
 def send_completion_request(file, location):
+    print('send_completion_request')
     return send_syntax_request(file, location, 'completion')
 # -----------------
 def send_tooltip_request(file, location, hint, short_hinted_tooltips=True):

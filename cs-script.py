@@ -12,14 +12,13 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.8' # build 0
+version = '1.2.9' # build 0
 os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
     raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
 
 # -------------------------
-
 def is_script_file(file):
     return file.endswith(".cs") or file.endswith(".csx")
 
