@@ -20,6 +20,9 @@ if sys.version_info < (3, 3):
 
 # -------------------------
 
+def is_script_file(file):
+    return file.endswith(".cs") or file.endswith(".csx")
+
 def settings():
     return sublime.load_settings("cs-script.sublime-settings")
 
@@ -541,7 +544,7 @@ class csscript_listener(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
         curr_doc = view.file_name()
 
-        if curr_doc.endswith(".cs"):
+        if is_script_file(curr_doc):
 
             completions = []
 
@@ -1438,7 +1441,7 @@ class csscript_goto_definition(CodeViewTextCommand):
     def run(self, edit):
         view = self.view
         curr_doc = self.view.file_name()
-        if curr_doc.endswith(".cs"):
+        if is_script_file(curr_doc):
 
             if not is_valid_selection(self.view):
                 sublime.status_message('Incompatible selection')
