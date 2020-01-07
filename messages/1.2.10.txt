@@ -1,0 +1,10 @@
+Features/Changes:
+
+- Issue #5: CS-Script plugin reindents the file on save
+
+
+*********************************************************************************
+NOTE: Due to the ST3 plugin hosting limitations some Python modules need to be fully
+re-initialized during upgrades. Thus it is recommended to restart Sublime Text
+before you start using the CS-Script plugin.
+*********************************************************************************
