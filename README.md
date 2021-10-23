@@ -1,5 +1,7 @@
 # CS-Script.ST3
 
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://oleg-shilo.github.io/cs-script/Donation.html)
+
 CS-Script (C# intellisense) plugin for Sublime Text 3. 
 The true C# intellisense and script execution solution, based on CS-Script and Roslyn. 
 
