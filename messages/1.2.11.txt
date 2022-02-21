@@ -1,0 +1,13 @@
+Features/Changes:
+
+## It is a rerelease of v1.2.10.0 as v1.2.11 due to the publishing mistake on https://packagecontrol.io
+
+### v1.2.10.0 changes
+- Issue #5: CS-Script plugin reindents the file on save
+
+
+*********************************************************************************
+NOTE: Due to the ST3 plugin hosting limitations some Python modules need to be fully
+re-initialized during upgrades. Thus it is recommended to restart Sublime Text
+before you start using the CS-Script plugin.
+*********************************************************************************
