@@ -12,13 +12,17 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.11' # build 0
-os.environ["cs-script.st3.ver"] = version
+from .imports.utils import *
+
+version = '1.2.11'  # build 0
+# os.environ["cs-script.st3.ver"] = version
 
 if sys.version_info < (3, 3):
     raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
 
-# -------------------------
+Runtime.init(version)
+
+# ------------------------- 
 def is_script_file(file):
     return file.endswith(".cs") or file.endswith(".csx")
 
@@ -29,25 +33,6 @@ def save_settings():
     return sublime.save_settings("cs-script.sublime-settings")
 # -------------------------
 def on_plugin_loaded():
-    def which(file):
-        try:
-            out_file = os.path.join(plugin_dir, "..", "User", 'which.txt')
-
-            with open(out_file, "w") as f:
-                popen_redirect_tofile(['which', file], f).wait()
-
-            output = None
-            with open(out_file, "r") as f:
-                output =  f.read().strip()
-
-            if os.path.exists(out_file):
-                os.remove(out_file)
-
-            return output
-
-        except Exception as e:
-            print('Cannot execute "which" for '+file+'.', e)
-
     # on Mac the path to mono is not added to envar PATH
     # so need to probe for it
 
@@ -65,6 +50,8 @@ def on_plugin_loaded():
             print('Adding mono path to envar PATH.', mono_path)
             os.environ["PATH"] += os.pathsep + mono_path
 
+    print_config()
+
 class CodeViewTextCommand(sublime_plugin.TextCommand):
     # -----------------
     def is_enabled(self):
@@ -77,19 +64,6 @@ class CodeViewTextCommand(sublime_plugin.TextCommand):
              return not(panel is not None and panel.id() == self.view.id())
         else:
             return True
-
-# -------------------------
-
-plugin_dir = os.path.dirname(__file__)
-plugin_name = path.basename(plugin_dir)
-
-new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'new_script.cs')
-bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script'+ os.sep)
-bin_src = path.join(plugin_dir, 'bin')
-current_bin_dest = path.join(bin_dest+'syntaxer_v'+version)
-
-if not os.path.isdir(current_bin_dest):
-    os.environ["new_deployment"] = 'true'
 
 # -------------------------
 def clear_old_versions_but(version):
@@ -122,12 +96,12 @@ def clear_old_versions_but(version):
 # -------------------------
 def ensure_default_config(csscriptApp):
 
-    config_file = path.join(path.dirname(csscriptApp), 'css_config.xml')
+    config_file = path.join(path.dirname(Runtime.cscs_path), 'css_config.xml')
 
     if not path.exists(config_file):
-        subprocess.Popen(to_args([csscriptApp, '-config:create']),
+        subprocess.Popen(to_args([Runtime.cscs_path, '-config:create']),
                          stdout=subprocess.PIPE,
-                         cwd=path.dirname(csscriptApp),
+                         cwd=path.dirname(Runtime.cscs_path),
                          shell=True).wait()
 
         updated_config = ''
@@ -167,13 +141,13 @@ def ensure_default_config(csscriptApp):
 def ensure_default_roslyn_config(csscriptApp):
     if os.getenv("new_deployment") == 'true':
         if os.name == 'nt':
-            subprocess.Popen(to_args([csscriptApp, '-config:set:RoslynDir="'+current_bin_dest+'"']),
+            subprocess.Popen(to_args([Runtime.cscs_path, '-config:set:RoslynDir="'+current_bin_dest+'"']),
                              stdout=subprocess.PIPE,
-                             cwd=path.dirname(csscriptApp),
+                             cwd=path.dirname(Runtime.cscs_path),
                              shell=True).wait()
-            subprocess.Popen(to_args([csscriptApp, '-config:set:useAlternativeCompiler=CSSRoslynProvider.dll']),
+            subprocess.Popen(to_args([Runtime.cscs_path, '-config:set:useAlternativeCompiler=CSSRoslynProvider.dll']),
                              stdout=subprocess.PIPE,
-                             cwd=path.dirname(csscriptApp),
+                             cwd=path.dirname(Runtime.cscs_path),
                              shell=True).wait()
 
 # -------------------------
@@ -204,7 +178,7 @@ def deploy_shadow_bin(file_name, subdir = None):
     return dest
 # -------------------------
 
-# deploy an initial copy of cscs.exe so syntaxer can start but clear csscriptApp
+# deploy an initial copy of cscs.exe so syntaxer can start but clear Runtime.cscs_path
 # so it can be later set from settings
 if os.name == 'nt':
     src = path.join(bin_src, 'nuget.win.exe')
@@ -221,86 +195,39 @@ else:
 
 
 deploy_shadow_bin('cscs.exe')
-csscriptApp = None
 deploy_shadow_bin('CSSRoslynProvider.dll')
-syntaxerApp = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
-syntaxerPort = settings().get('server_port', 18000)
+Runtime.syntaxer_path = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
+Runtime.syntaxer_port = settings().get('server_port', 18000)
 showTooltipOverGutter = settings().get('show_tooltip_over_gutter', True)
 
-os.environ["syntaxer_dir"] = path.dirname(syntaxerApp)
-# os.environ["CSSCRIPT_ROSLYN"] = path.dirname(syntaxerApp) may need to be the way for future
+os.environ["syntaxer_dir"] = path.dirname(Runtime.cscs_path)
+# os.environ["CSSCRIPT_ROSLYN"] = path.dirname(Runtime.cscs_path) may need to be the way for future
 # print('syntaxer_dir', os.environ["syntaxer_dir"])
 clear_old_versions_but(version)
 # -------------------------
 
-def read_engine_config():
-    global csscriptApp
+isDotNetCore = True;
 
-    deployment_dir = bin_src
-    deployment_dir = bin_dest
 
-    cscs_path = settings().get('cscs_path', './cscs.exe')
-
-    if cscs_path == None:
-        cscs_path = csscriptApp = path.join(deployment_dir, 'cscs.exe')
-
-    elif cscs_path:
-        if cscs_path == './cscs.exe':
-            csscriptApp = path.join(deployment_dir, 'cscs.exe')
-        else:
-            csscriptApp = os.path.abspath(os.path.expandvars(cscs_path))
+def init_environment():
+    print_config()
+    
 
 # -------------------------
 
-read_engine_config()
-
 def print_config():
     print('----------------')
-    print('cscs.exe: ', csscriptApp)
-    print('syntaxer.exe: ', syntaxerApp)
-    print('syntaxer port: ', syntaxerPort)
+    print('cscs: ', Runtime.cscs_path)
+    syntaxer_print_config()
     print('syntaxcheck_on_save: ', settings().get('syntaxcheck_on_save', True))
     print('server_autostart: ', settings().get('server_autostart', True))
     print('----------------')
 
 # -------------------------
-from .imports.utils import *
 from .imports.syntaxer import *
 from .imports.setup import *
 
 csscript_setup.version = version
-
-def get_css_version():
-    try:
-        version = ''
-        clr_version = ''
-        print('read ver:')
-
-        # //proc = subprocess.Popen(to_args([csscriptApp, "-ver"]), stdout=subprocess.PIPE, shell=True)
-        print(csscriptApp)
-        proc = popen_redirect([csscriptApp, "-ver"])
-
-        prefix = 'C# Script execution engine. Version'
-        clr_prefix = 'CLR:'
-
-        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
-            # print('-',line)
-            line = line.strip()
-            if prefix in line:
-                # C# Script execution engine. Version 3.19.1.0.
-                version = line[len(prefix):].strip().strip('.')
-            if clr_prefix in line:
-                # CLR:            4.0.30319.42000
-                ver_str = line.split(':')[1]
-                print('ver:',ver_str.split('(')[0].strip())
-                clr_version = line.split(':')[1].split('(')[0].strip()
-
-        return (version, clr_version)
-
-    except Exception as e:
-        print(e)
-        return (None, None)
-
 
 # =================================================================================
 # TODO
@@ -318,7 +245,7 @@ def mark_as_formatted(view):
     formatted_views[view.id()] = time.time()
 
 # =================================================================================
-# C#/CS-Script pugin "new script" service
+# C#/CS-Script plugin "new script" service
 # =================================================================================
 class csscript_new(sublime_plugin.TextCommand):
     # -----------------
@@ -330,12 +257,16 @@ class csscript_new(sublime_plugin.TextCommand):
                 os.remove(backup_file)
             os.rename(new_file_path, backup_file)
 
-        backup_comment = ''
+        content = ''
         if backup_file:
-            backup_comment = '// The previous content of this file has been saved into \n' + \
-                             '// '+backup_file+' \n'
+            content = '// The previous content of this file has been saved into: '+backup_file+' \n\n'
 
-        content = csscript_setup.prepare_new_script().replace('$backup_comment$', backup_comment)
+        subprocess\
+            .Popen(['dotnet', Runtime.cscs_path, '-new:toplevel', new_file_path], stdout=subprocess.PIPE, shell=True)\
+            .wait()
+
+        with open(new_file_path, "r") as f:
+            content = content + f.read()
 
         with open(new_file_path, "w") as file:
             file.write(content)
@@ -348,7 +279,6 @@ class csscript_new(sublime_plugin.TextCommand):
 class csscript_help(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
-
         file = csscript_setup.prepare_readme()
         if os.path.exists(file):
             sublime.active_window().open_file(file)
@@ -383,7 +313,6 @@ class settings_listener(sublime_plugin.EventListener):
             settings().add_on_change("cscs_path", self.callback)
             settings().add_on_change("server_port", self.on_port_changed)
 
-            print_config()
 
     def on_port_changed(self):
         global syntaxerPort
@@ -402,15 +331,13 @@ class settings_listener(sublime_plugin.EventListener):
 
     def process_settings_change(self):
 
-        global csscriptApp
-
         # may be fired when setting are not available yet
         try:
-            if csscriptApp != settings().get('cscs_path', '<none>'):
+            if Runtime.cscs_path != settings().get('cscs_path', '<none>'):
                 read_engine_config()
 
-                # sublime.error_message('About to send '+csscriptApp)
-                set_engine_path(csscriptApp)
+                # sublime.error_message('About to send '+Runtime.cscs_path)
+                set_engine_path(Runtime.cscs_path)
 
                 if settings().get('suppress_embedded_nuget_execution', False):
                     # the default nuget app on Linux (e.g. Mint 18) is incompatible with std.out redirection.

@@ -8,7 +8,80 @@ import subprocess
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
+
 plugin_dir = path.dirname(path.dirname(__file__))
+plugin_name = path.basename(plugin_dir)
+new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'new_script.cs')
+bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script'+ os.sep)
+bin_src = path.join(plugin_dir, 'bin')
+
+# =================================================================================
+# Plugin runtime configuration
+# =================================================================================
+class Runtime():
+    cscs_path = None
+    syntaxer_path = None
+    syntaxer_port = 18000
+    pluginVersion = None
+    new_deployment = False
+    is_dotnet_core = True
+
+    def settings():
+        return sublime.load_settings("cs-script.sublime-settings")
+    
+    def cscs_run(args):
+        return sublime.load_settings("cs-script.sublime-settings")
+    
+    def init(version):
+
+        Runtime.pluginVersion = version
+
+        if not os.path.isdir(path.join(bin_dest+'syntaxer_v'+version)):
+            Runtime.new_deployment = True
+
+        cscs_path = Runtime.settings().get('cscs_path', './cscs.exe')
+        Runtime.syntaxer_path = 'C:\\ProgramData\\chocolatey\\lib\\cs-syntaxer\\tools\\syntaxer.exe'
+
+        if Runtime.is_dotnet_core:
+            css_root = os.environ["CSSCRIPT_ROOT"]
+
+            if path.exists(css_root):
+                cscs_path = path.join(css_root, "cscs.dll");
+            
+        if cscs_path == None:
+            Runtime.cscs_path = path.join(bin_dest, 'cscs.exe')
+        elif cscs_path:
+            if cscs_path == './cscs.exe':
+                Runtime.cscs_path = path.join(bin_dest, 'cscs.exe')
+            else:
+                Runtime.cscs_path = os.path.abspath(os.path.expandvars(cscs_path))
+# =================================================================================
+# Sublime utils
+# =================================================================================
+def is_linux():
+    return os.name == 'posix' and platform.system() == 'Linux'
+
+def is_mac():
+    return os.name == 'posix' and platform.system() == 'Darwin'
+
+def which(file):
+    try:
+        out_file = os.path.join(plugin_dir, "..", "User", 'which.txt')
+
+        with open(out_file, "w") as f:
+            popen_redirect_tofile(['which', file], f).wait()
+
+        output = None
+        with open(out_file, "r") as f:
+            output =  f.read().strip()
+
+        if os.path.exists(out_file):
+            os.remove(out_file)
+
+        return output
+
+    except Exception as e:
+        print('Cannot execute "which" for '+file+'.', e)
 
 # =================================================================================
 # Sublime utils
@@ -45,7 +118,7 @@ def output_view_append(name, output):
     output_view_write_line(name, output.rstrip())
 
     # no need to scroll as "view.run_command('append'..." of output_view_write_line
-    # already does it. What is actually quite annoing as no scrolling contron from plugin is possible.
+    # already does it. What is actually quite annoying as no scrolling control from plugin is possible.
     # view = get_output_view(name)
     # view.show(view.size()-1)
 # -----------------

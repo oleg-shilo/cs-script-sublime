@@ -34,8 +34,8 @@ class csscript_setup(sublime_plugin.EventListener):
     def get_sysconfig_description():
         template = """
 **Required minimum system configuration:**
- * {req_clr}
- * CS-Script:  v3.19
+ * .NET:       v{req_clr}
+ * CS-Script:  v4.4.2
 
 **Detected system configuration:**
   * {det_clr}
@@ -47,91 +47,43 @@ class csscript_setup(sublime_plugin.EventListener):
         detected_css = ''
         clr_install = ''
 
-        if os.name == 'posix':
-            required_clr = 'Mono:       v4.6.2'
-            incompatible_clr = True
+        required_clr = '6.˟'
+        incompatible_clr = True
 
-            current_mono_version = csscript_setup.get_mono_version()
+        current_dotnet_version = csscript_setup.get_dotnet_version()
+        
+        if current_dotnet_version == None:
+            detected_clr = '.NET:       <not found>'
+            detected_css = 'CS-Script:  <unknown>'
 
-            if current_mono_version == None:
-                detected_clr = 'Mono:       <not found>'
-                detected_css = 'CS-Script:  <unknown>'
+        elif LooseVersion(current_dotnet_version) <  LooseVersion('6.0.0') or LooseVersion(current_dotnet_version) >=  LooseVersion('7.0.0'):
+            detected_clr = '.NET:       v'+str(current_dotnet_version) + ' <incompatible> - required v'+required_clr
+            detected_css = 'CS-Script:  <unknown>'
 
-            elif LooseVersion(current_mono_version) <  LooseVersion('4.6.2') :
-                detected_clr = 'Mono:       v'+str(current_mono_version) + ' <incompatible>'
-                detected_css = 'CS-Script:  <unknown>'
-
-            elif LooseVersion(current_mono_version) >=  LooseVersion('4.6.2') :
-                # only reun cscs if compatible clr is found
-                incompatible_clr = False
-                css_ver, clr_ver = csscript_setup.get_css_version()
-                detected_clr = 'Mono:       v' + str(current_mono_version)
-                detected_css = 'CS-Script:  v' + css_ver
-
-            if incompatible_clr:
-                clr_install = """
-The required version of Mono runtime cannot be deteced on the system.
-Please visit Mono website (http://www.mono-project.com/docs/getting-started/install/linux/) and follow the instructions on how to install the latest version.
-Note: you need to install "mono-complete" package.
-
-The following are the instructions on how to install Mono on Debian, Ubuntu, and derivatives (as at 24 Dec 2016 for Mint18):
- sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
- echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
- sudo apt-get update
- sudo apt-get install mono-complete
-
- Note, currently (as per Mar 2017) the latest version of Mono (v4.8.0) supports only C# 6 syntax. The plugin is already C#7 ready so will be able to run C#7 scripts from the moment Mono supports C#7.
-"""
-        else:
-            css_ver, clr_ver = csscript_setup.get_css_version()
-            print('clr_ver', clr_ver)
-            if css_ver == None:
-                detected_clr = '.NET:       <unknown>'
-                detected_css = 'CS-Script:  <unknown>'
-            elif LooseVersion(clr_ver) <  LooseVersion('4.0') :
-                detected_clr = '.NET:       v'+ clr_ver + ' <incompatible>'
-                detected_css = 'CS-Script:  v'+css_ver
-
-            elif LooseVersion(clr_ver) >=  LooseVersion('4.0') :
-                # only run cscs if compatible clr is found
-                incompatible_clr = False
-
-            required_clr = '.NET:       v4.0/4.5'
-            detected_clr = '.NET:       v' + clr_ver
+        elif LooseVersion(current_dotnet_version) >=  LooseVersion('6.0.0') :
+            # only run cscs if compatible clr is found
+            incompatible_clr = False
+            css_ver  = csscript_setup.get_css_version()
+            detected_clr = '.NET:       v' + str(current_dotnet_version)
             detected_css = 'CS-Script:  v' + css_ver
 
-            if incompatible_clr:
-                clr_install = """
-!!!!!!!!!!!!!!!!!
+        if incompatible_clr:
+            clr_install = """
 The required version of .NET runtime cannot be detected on the system.
-!!!!!!!!!!!!!!!!!
-Please visit .NET website (https://www.microsoft.com/net/download) and follow the instructions on how to install the latest version.
+Please visit .NET website (https://dotnet.microsoft.com) and follow the instructions on how to install the required version (v"""+required_clr+""").
 """
+        
         return template.replace('{req_clr}', required_clr) \
                        .replace('{det_clr}', detected_clr) \
                        .replace('{det_css}', detected_css) \
                        .replace('{clr_install}', clr_install)
     # -----------------
-    def get_mono_version():
+    def get_dotnet_version():
         try:
-            version = ''
-            file = os.path.join(plugin_dir, 'detect_css.log')
+            proc = subprocess.Popen(['dotnet', "--version"], stdout=subprocess.PIPE, shell=True)
 
-            command = ['mono', '--version']
-            with open(file, 'w') as logfile:
-                subprocess.call(command, stdout=logfile, shell=False)
-
-            with open(file, 'r') as logfile:
-                prefix = 'Mono JIT compiler version'
-                for line in logfile.readlines():
-                    if prefix in line:
-                        version = line[len(prefix):].strip().split(' ')[0]
-                        break
-
-            if os.path.exists(file):
-                os.remove(file)
-
-            return version
+            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
+                return line.strip()
 
         except Exception as e:
             print(e)
@@ -139,38 +91,15 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
     # -----------------
     def get_css_version():
         try:
-            version = ''
-            clr_version = ''
-            # print('read ver..')
-
-            global csscriptApp
-            proc = popen_redirect([csscriptApp, "-ver"])
-
-            # print('csscriptApp', os.path.exists(csscriptApp), csscriptApp)
-
-            prefix = 'C# Script execution engine. Version'
-            clr_prefix = 'CLR:'
+            proc = subprocess.Popen(['dotnet', Runtime.cscs_path, "--version"], stdout=subprocess.PIPE, shell=True)
 
             for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
-                # print(line)
-                line = line.strip()
-                if prefix in line:
-                    # C# Script execution engine. Version 3.19.1.0.
-                    version = line[len(prefix):].strip().strip('.')
-                if clr_prefix in line:
-                    # CLR:            4.0.30319.42000 (.NET Framework v4.6.2 or later)
-                    ver_str = line.split(':')[1]
-                    clr_version = ver_str.split('(')[0].strip()
-                    # print('ver:', clr_version)
-
-            return (version, clr_version)
+                return line.strip()
 
         except Exception as e:
             print(e)
-            return (None, None)
-    # -----------------
-    # def is_enabled(self):
-    #     return is_csharp(sublime.active_window().active_view())
+            return None
+
     # -----------------
     def on_activated(self, view):
         file = view.file_name()
@@ -185,31 +114,6 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
 
             settings().set('last_run_version', csscript_setup.version)
             save_settings()
-    # -----------------
-    def prepare_new_script():
-        template_file = os.path.join(plugin_dir, '..', 'User', 'cs-script', 'new_script.tmpl')
-
-        template = 'using System;\n'
-        template = template + '$backup_comment$\n'
-        template = template + 'class Script\n'
-        template = template + '{\n'
-        template = template + '    static void Main(string[] args)\n'
-        template = template + '    {\n'
-        template = template + '        Console.WriteLine("Hello...");\n'
-        template = template + '    }\n'
-        template = template + '}'
-
-        if not os.path.exists(template_file):
-            with open(template_file, "w") as f:
-                f.write(template)
-
-        try:
-            with open(template_file, "r") as f:
-                template = f.read()
-        except:
-            pass
-
-        return template
     # -----------------
     def show_readme(self):
         # print('csscript_help')
@@ -234,18 +138,16 @@ Please visit .NET website (https://www.microsoft.com/net/download) and follow th
 
         content = templete.replace('{SYS_REQ}', csscript_setup.get_sysconfig_description())
 
-
-        with open(readme, "w") as f:
+        with open(readme, "w", encoding="utf-8") as f:
             f.write(content)
 
         return readme
     # -----------------
     def prepare_css_help():
-        global csscriptApp
 
         readme = os.path.join(plugin_dir, 'cs-script.help.txt')
 
         with open(readme, "w") as f:
-            popen_redirect_tofile([csscriptApp, "-help"], f).wait()
+            popen_redirect_tofile([Runtime.cscs_path, "-help"], f).wait()
 
         return readme

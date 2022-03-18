@@ -18,29 +18,48 @@ from .utils import *
 
 out_panel = 'CS-Script'
 
-plugin_dir = path.dirname(path.dirname(__file__))
-csscriptApp = path.join(plugin_dir, 'bin', 'cscs.exe')
-syntaxerApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'syntaxer_v'+os.environ["cs-script.st3.ver"],'syntaxer.exe')
-syntaxerPort = 18000
 
+
+syntaxerApp = None
+syntaxerPort = None
+
+# plugin_dir = path.dirname(path.dirname(__file__))
+# Runtime.cscs_path = path.join(plugin_dir, 'bin', 'cscs.exe')
+# syntaxerApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'syntaxer_v'+os.environ["cs-script.st3.ver"],'syntaxer.exe')
+# syntaxerPort = 18000
+
+def syntaxer_print_config():
+    print('syntaxer_cscs: ', Runtime.cscs_path)
+    print('syntaxer_server: ', Runtime.syntaxer_path)
+    print('syntaxer_port: ', Runtime.syntaxer_port)
+
+def is_linux():
+    return os.name == 'posix' and platform.system() == 'Linux'
 
 # =================================================================================
 # C# Syntax Server - service that any process can connect via socket and request
 # intellisense queries
 # =================================================================================
-def is_linux():
-    return os.name == 'posix' and platform.system() == 'Linux'
 
-def is_mac():
-    return os.name == 'posix' and platform.system() == 'Darwin'
 # -----------------
 def to_args(args):
     # excellent discussion about why popen+shell doesn't work on Linux
     # http://stackoverflow.com/questions/1253122/why-does-subprocess-popen-with-shell-true-work-differently-on-linux-vs-windows
-    if is_linux() and not is_mac():
-        result = ''
 
-        if args[0].endswith('cscs.exe') or args[0].endswith('syntaxer.exe'):
+    if Runtime.is_dotnet_core:
+        if args[0] == 'dotnet':
+            result = ''
+        else:
+            result = 'dotnet '
+
+        for arg in args:
+            result = result + '"'+arg+'" '
+        return [result.rstrip()]
+        
+    elif is_linux() and not is_mac():
+        result = ''
+        last_arg = args[0]
+        if last_arg.endswith('cscs.exe') or last_arg.endswith('syntaxer.exe') or last_arg.endswith('cscs.dll') or last_arg.endswith('syntaxer.dll'):
             result = 'mono '
 
         for arg in args:
@@ -62,7 +81,7 @@ def start_syntax_server():
         args.append('-port:'+str(syntaxerPort))
         args.append('-timeout:3000')
         args.append('-client:{0}'.format(os.getpid()))
-        args.append('-cscs_path:{0}'.format(csscriptApp))
+        args.append('-cscs_path:{0}'.format(Runtime.cscs_path))
         args = to_args(args)
         # args = '{0} -listen -port:{1} -client:{2}'.fnormat(serverApp, syntaxerPort, os.getpid())
 
@@ -91,19 +110,17 @@ def send_exit_request():
 reconnect_count = 0
 last_cscs_sent = None
 def set_engine_path(cscs_path):
-    global csscriptApp
     if cscs_path:
-        csscriptApp = cscs_path
+        Runtime.cscs_path = cscs_path
         reconnect_count = 0
         # print('setting engine path')
-        send_cscs_path(csscriptApp)
+        send_cscs_path(Runtime.cscs_path)
 
 # -----------------
 def preload_engine():
-    global csscriptApp
     try:
         args = []
-        args.append(csscriptApp)
+        args.append(Runtime.cscs_path)
         args.append('-preload')
         args = to_args(args)
         start = time.time()
@@ -234,8 +251,8 @@ def run_doc_in_cscs(args, view, handle_line, on_done=None, nuget_warning = True)
 
     clear_and_print_result_header(curr_doc)
 
-    if not path.exists(csscriptApp):
-        print('Error: cannot find CS-Script launcher - ', csscriptApp)
+    if not path.exists(Runtime.cscs_path):
+        print('Error: cannot find CS-Script launcher - ', Runtime.cscs_path)
     elif not curr_doc:
         print('Error: cannot find out the document path')
     else:
@@ -246,7 +263,7 @@ def run_doc_in_cscs(args, view, handle_line, on_done=None, nuget_warning = True)
             output_view_write_line(out_panel, "Resolving NuGet packages may take time...")
 
         def do():
-            all_args = [csscriptApp]
+            all_args = [Runtime.cscs_path]
 
             for a in args:
                 all_args.append(a)
@@ -277,11 +294,11 @@ def run_cscs(args, handle_line, on_done=None, header=None):
         output_view_write_line(out_panel, header)
         output_view_write_line(out_panel, "------------------------------------------------------------------------")
 
-    if not path.exists(csscriptApp):
-        print('Error: cannot find CS-Script launcher - ', csscriptApp)
+    if not path.exists(Runtime.cscs_path):
+        print('Error: cannot find CS-Script launcher - ', Runtime.cscs_path)
     else:
         def do():
-            all_args = [csscriptApp]
+            all_args = [Runtime.cscs_path]
 
             for a in args:
                 all_args.append(a)
