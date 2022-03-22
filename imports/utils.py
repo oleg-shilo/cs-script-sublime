@@ -122,10 +122,15 @@ def output_view_append(name, output):
     # view = get_output_view(name)
     # view.show(view.size()-1)
 # -----------------
+def output_view_scrollup(name):
+    view = get_output_view(name)
+    view.show(view.size()-1)
+# -----------------
 def output_view_clear(name):
     view = get_output_view(name) # to ensure it's created
     view.run_command('select_all')
     view.run_command('right_delete')
+    view.show(view.size()-1) # ensure reset of the scrollbar position (it is important)
 # -----------------
 def is_output_view_visible(name):
     view = sublime.active_window().get_output_panel("output."+name)

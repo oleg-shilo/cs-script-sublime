@@ -45,22 +45,12 @@ def is_linux():
 def to_args(args):
     # excellent discussion about why popen+shell doesn't work on Linux
     # http://stackoverflow.com/questions/1253122/why-does-subprocess-popen-with-shell-true-work-differently-on-linux-vs-windows
-
-    if Runtime.is_dotnet_core:
-        if args[0] == 'dotnet':
-            result = ''
-        else:
-            result = 'dotnet '
-
-        for arg in args:
-            result = result + '"'+arg+'" '
-        return [result.rstrip()]
         
-    elif is_linux() and not is_mac():
+    if is_linux() and not is_mac():
         result = ''
         last_arg = args[0]
-        if last_arg.endswith('cscs.exe') or last_arg.endswith('syntaxer.exe') or last_arg.endswith('cscs.dll') or last_arg.endswith('syntaxer.dll'):
-            result = 'mono '
+        # if last_arg.endswith('cscs.exe') or last_arg.endswith('syntaxer.exe') or last_arg.endswith('cscs.dll') or last_arg.endswith('syntaxer.dll'):
+        #     result = 'mono '
 
         for arg in args:
             result = result + '"'+arg+'" '
@@ -240,10 +230,19 @@ def send_resolve_using_request(file, word):
     return send_syntax_request(file, -1, 'suggest_usings:'+word)
 # -----------------
 def popen_redirect(args):
-    return subprocess.Popen(to_args(args), stdout=subprocess.PIPE, shell=True)
+    all_args = to_args(args)
+    cmd = ''
+    for arg in all_args:
+        cmd = cmd + '"'+arg+'" '
+    print('popen_redirect: ' + cmd)
+    return subprocess.Popen(all_args, stdout=subprocess.PIPE, shell=True)
 # -----------------
 def popen_redirect_tofile(args, file):
     return subprocess.Popen(to_args(args), stdout=file, shell=True)
+
+def popen_tofile(args, file):
+ return subprocess.Popen(args, stdout=file, shell=True)
+
 # -----------------
 def run_doc_in_cscs(args, view, handle_line, on_done=None, nuget_warning = True):
 
@@ -263,7 +262,7 @@ def run_doc_in_cscs(args, view, handle_line, on_done=None, nuget_warning = True)
             output_view_write_line(out_panel, "Resolving NuGet packages may take time...")
 
         def do():
-            all_args = [Runtime.cscs_path]
+            all_args = ['dotnet', Runtime.cscs_path]
 
             for a in args:
                 all_args.append(a)
@@ -298,12 +297,12 @@ def run_cscs(args, handle_line, on_done=None, header=None):
         print('Error: cannot find CS-Script launcher - ', Runtime.cscs_path)
     else:
         def do():
-            all_args = [Runtime.cscs_path]
+            all_args = ['dotnet', Runtime.cscs_path]
 
             for a in args:
                 all_args.append(a)
 
-            proc = popen_redirect(all_args)
+            proc = subprocess.Popen(all_args, stdout=subprocess.PIPE, shell=True)
 
             for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
                 handle_line(line.strip())

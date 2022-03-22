@@ -291,7 +291,11 @@ class csscript_help(sublime_plugin.TextCommand):
 class csscript_css_help(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
-        file = csscript_setup.prepare_css_help()
+        file = os.path.join(plugin_dir, 'cs-script.help.txt')
+
+        with open(file, "w") as f:
+            popen_tofile(['dotnet', Runtime.cscs_path, "-help"], f).wait()
+
         if os.path.exists(file):
             sublime.active_window().open_file(file)
         else:
@@ -351,8 +355,8 @@ class settings_listener(sublime_plugin.EventListener):
                     except Exception as e:
                         pass
 
-                ensure_default_config(csscriptApp)
-                ensure_default_roslyn_config(csscriptApp)
+                ensure_default_config(Runtime.cscs_path)
+                ensure_default_roslyn_config(Runtime.cscs_path)
 
                 if os.getenv("new_deployment") != 'true' and os.getenv("engine_preloaded") != 'true':
                     os.environ["engine_preloaded"] = 'true'
@@ -518,8 +522,8 @@ class csscript_listener(sublime_plugin.EventListener):
 class csscript_show_config(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
-        ensure_default_config(csscriptApp)
-        config_file = path.join(path.dirname(csscriptApp), 'css_config.xml')
+        ensure_default_config(Runtime.cscs_path)
+        config_file = path.join(path.dirname(Runtime.cscs_path), 'css_config.xml')
         sublime.active_window().open_file(config_file)
 
 # =================================================================================
@@ -746,9 +750,11 @@ class csscript_show_output(sublime_plugin.TextCommand):
 class csscript_about(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
-        def handle_line(line):
-            output_view_write_line(out_panel, line)
-        run_cscs(["-ver"], handle_line, header='CS-Script.ST3 - C# intellisense and execution plugin (v'+version+')')
+        run_cscs(\
+            [], \
+            handle_line = lambda line: output_view_write_line(out_panel, line), \
+            on_done=lambda: sublime.show(1, 1), \
+            header= 'CS-Script.ST3 - C# intellisense and execution plugin (v'+version+')')
 
 # =================================================================================
 # CS-Script project resolver service
@@ -780,7 +786,7 @@ class csscript_list_proj_files(CodeViewTextCommand):
         def on_done():
             output_view_write_line(out_panel, "---------------------\n[Script dependencies]")
 
-        run_doc_in_cscs(["-nl", '-l', "-proj:dbg"], self.view, self.handle_line, on_done)
+        run_doc_in_cscs(['-l', "-proj:dbg"], self.view, self.handle_line, on_done)
 # =================================================================================
 # CS-Script project (sources only) resolver service
 # =================================================================================
@@ -824,7 +830,7 @@ class csscript_list_proj_sources(CodeViewTextCommand):
 
             output_view_write_line(out_panel, "---------------------\n[Script sources]")
 
-        run_doc_in_cscs(["-nl", '-l', "-proj:dbg"], self.view, self.handle_line, on_done)
+        run_doc_in_cscs(['-l', "-proj:dbg"], self.view, self.handle_line, on_done)
 
 # =================================================================================
 # CS-Script syntax check service
@@ -847,19 +853,22 @@ class csscript_syntax_check(CodeViewTextCommand):
 
         clear_and_print_result_header(curr_doc)
 
-        if not path.exists(csscriptApp):
-            print('Error: cannot find CS-Script launcher - ', csscriptApp)
+        if not path.exists(Runtime.cscs_path):
+            print('Error: cannot find CS-Script launcher - ', Runtime.cscs_path)
         elif not curr_doc:
             print('Error: cannot find out the document path')
         else:
 
             clear_and_print_result_header(curr_doc)
+            
             if '//css_nuget' in view.substr(sublime.Region(0, view.size())):
                 output_view_write_line(out_panel, "Resolving NuGet packages may take time...")
             csscript_syntax_check.clear_errors()
 
+            
+            proc = popen_redirect(['dotnet', Runtime.cscs_path, '-l', "-check", curr_doc])
 
-            proc = popen_redirect([csscriptApp, "-nl", '-l', "-check", curr_doc])
+
             first_result = True
             for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
                 line = line.strip()
@@ -1197,10 +1206,7 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
     running_process = None
     # -----------------
     def run(self, edit):
-        if is_mac():
-            sublime.error_message('On Mac you will need to start terminal manually and execute "mono cscs.exe <script path>"')
-            return
-
+        
         if csscript_execute_and_redirect.running_process:
             print("Previous C# script is still running...")
             return
@@ -1216,9 +1222,11 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
         def run():
             script = curr_doc
             clear_and_print_result_header(self.view.file_name())
+            
+            process = popen_redirect(['dotnet', Runtime.cscs_path, script]) 
 
-            process = popen_redirect([csscriptApp, "-nl", '-l', script])
             output_view_write_line(out_panel, '[Started pid: '+str(process.pid)+']', True)
+            
             csscript_execute_and_redirect.running_process = process
 
             def process_line(output, ignore_empty = False):
@@ -1242,6 +1250,7 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
                     process_line(output, ignore_empty=True)
                 except :
                     pass
+
             csscript_execute_and_redirect.running_process = None
             output_view_write_line(out_panel, "[Execution completed]")
 
@@ -1251,6 +1260,7 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
 # =================================================================================
 # CS-Script build executable from the script
 # =================================================================================
+# +done
 class csscript_build_exe(CodeViewTextCommand):
     # -----------------
     def run(self, edit):
@@ -1277,23 +1287,26 @@ class csscript_build_exe(CodeViewTextCommand):
             if path.exists(exe_file):
                 output_view_write_line(out_panel,'Script is converted into executable ' + exe_file)
             output_view_write_line(out_panel, "---------------------\n[Build exe]")
+            sublime.show(1, 1)
 
-        run_doc_in_cscs(["-nl", '-l', "-e"], self.view, handle_line, on_done)
+        run_doc_in_cscs(['-l', '-e'], self.view, handle_line, on_done)
 
 # =================================================================================
 # CS-Script execute service. Shell remains visible after the process termination
 # =================================================================================
+# +done
 class csscript_execute_and_wait(CodeViewTextCommand):
     # -----------------
     def run(self, edit):
+        
         sublime.active_window().run_command("save")
         curr_doc = self.view.file_name()
 
-        if not path.exists(csscriptApp):
-            print('Error: cannot find CS-Script launcher - ', csscriptApp)
+        if not path.exists(Runtime.cscs_path):
+            print('Error: cannot find CS-Script launcher - ', Runtime.cscs_path)
         else:
             if os.name == 'nt':
-                proc = subprocess.Popen(to_args([csscriptApp, "-nl", '-l', '-wait', curr_doc]))
+                os.system('dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"')
             else:
                 # Linux and Mac
                 env = os.environ.copy()
@@ -1301,7 +1314,11 @@ class csscript_execute_and_wait(CodeViewTextCommand):
 
                 cwd = os.path.dirname(curr_doc)
 
-                css_command = to_args([csscriptApp, "-nl", '-l', '%SCRIPT_FILE%'])[0] # will wrap into quotations
+                css_command = ' '
+
+                for arg in args:
+                    css_command = css_command + '"'+arg+'" '
+
                 command = "bash -c \"{0} ; exec bash\"".format(css_command)
                 args =[TerminalSelector.get(), '-e', command]
 
@@ -1427,6 +1444,7 @@ class csscript_goto_definition(CodeViewTextCommand):
 # =================================================================================
 # CS-Script go-to-definition service
 # =================================================================================
+# +done
 class csscript_show_output_panel(sublime_plugin.WindowCommand):
     # -----------------
     def run(self):
