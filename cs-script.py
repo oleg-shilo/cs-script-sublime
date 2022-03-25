@@ -15,12 +15,9 @@ from os import path
 from .imports.utils import *
 
 version = '1.2.11'  # build 0
-# os.environ["cs-script.st3.ver"] = version
+new_deployment = (not os.path.isdir(path.join(bin_dest+'cs-script_v'+version)))
 
-if sys.version_info < (3, 3):
-    raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
-
-Runtime.init(version)
+if sys.version_info < (3, 3): raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
 
 # ------------------------- 
 def is_script_file(file):
@@ -31,27 +28,13 @@ def settings():
 
 def save_settings():
     return sublime.save_settings("cs-script.sublime-settings")
-# -------------------------
+
 def on_plugin_loaded():
-    # on Mac the path to mono is not added to envar PATH
-    # so need to probe for it
-
-    if is_mac():
-
-        mono_path = settings().get('mono_path', None)
-
-        if not mono_path:
-            if path.exists('/usr/local/bin/mono'):
-                mono_path = '/usr/local/bin'
-            else:
-                mono_path = which("mono")
-
-        if mono_path:
-            print('Adding mono path to envar PATH.', mono_path)
-            os.environ["PATH"] += os.pathsep + mono_path
-
+    Runtime.init(version, new_deployment)
+    check_environment(False);
     print_config()
 
+# -------------------------
 class CodeViewTextCommand(sublime_plugin.TextCommand):
     # -----------------
     def is_enabled(self):
@@ -66,9 +49,13 @@ class CodeViewTextCommand(sublime_plugin.TextCommand):
             return True
 
 # -------------------------
+class csscript_check_deployment(sublime_plugin.TextCommand):
+    def run(self, edit):
+        check_environment(True)
+# -------------------------
 def clear_old_versions_but(version):
 
-    if os.getenv("new_deployment") == 'true':
+    if new_deployment:
         try:
             if os.name == 'nt':
                 os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is runningif os.name == 'nt':
@@ -77,18 +64,18 @@ def clear_old_versions_but(version):
             pass
 
 
-
-    old_syntaxer_exe = path.join(bin_dest, 'syntaxer.exe')
-    try:
-        os.remove(old_syntaxer_exe)
-    except:
-        pass
-
     sub_dirs = [name for name in os.listdir(bin_dest)
            if os.path.isdir(os.path.join(bin_dest, name))]
 
     for dir in sub_dirs:
         if dir.startswith('syntaxer') and not dir.endswith(version):
+            try:
+                shutil.rmtree(path.join(bin_dest, dir))
+            except:
+                pass
+
+    for dir in sub_dirs:
+        if dir.startswith('cs-script') and not dir.endswith(version):
             try:
                 shutil.rmtree(path.join(bin_dest, dir))
             except:
@@ -151,68 +138,45 @@ def ensure_default_roslyn_config(csscriptApp):
                              shell=True).wait()
 
 # -------------------------
-def deploy_shadow_bin(file_name, subdir = None):
+
+def deploy_shadow_dir(src_subdir, dest_subdir):
+
+    def copy_and_overwrite(from_path, to_path):
+        if os.path.exists(to_path):
+            shutil.rmtree(to_path)
+        shutil.copytree(from_path, to_path)
 
     if not path.exists(bin_dest):
         os.makedirs(bin_dest)
 
     dest_dir = bin_dest
-    if subdir:
-        dest_dir = path.join(dest_dir, subdir)
+    if dest_subdir:
+        dest_dir = path.join(dest_dir, dest_subdir)
 
-    if not path.exists(dest_dir):
+    
+    if path.exists(dest_dir):
+        return
+    else:
         os.makedirs(dest_dir)
-
-    src = path.join(bin_src, file_name)
-    dest = path.join(dest_dir, file_name)
-
+ 
+    src = path.join(bin_src, src_subdir)
+    dest = path.join(bin_dest, dest_subdir)
+    
     try:
         # print('deploying', dest)
-        if not path.exists(dest) or os.stat(src).st_size != os.stat(dest).st_size:
-            shutil.copy2(src, dest_dir)
-        else:
-            shutil.copy2(src, dest_dir)
+        copy_and_overwrite(src, dest)
     except Exception as ex :
         print('deploy_shadow_bin', ex)
         pass
     return dest
-# -------------------------
 
-# deploy an initial copy of cscs.exe so syntaxer can start but clear Runtime.cscs_path
-# so it can be later set from settings
-if os.name == 'nt':
-    src = path.join(bin_src, 'nuget.win.exe')
-    dest = path.join(bin_src, 'nuget.exe')
-    if path.exists(src):
-        if path.exists(dest):
-            os.remove(dest)
-        os.rename(src, dest)
+    shutil.copytree(dir_name, dest)
 
-else:
-    src = path.join(bin_src, 'nuget.win.exe')
-    if path.exists(src):
-        os.remove(src)
-
-
-deploy_shadow_bin('cscs.exe')
-deploy_shadow_bin('CSSRoslynProvider.dll')
-Runtime.syntaxer_path = deploy_shadow_bin('syntaxer.exe', "syntaxer_v"+version)
-Runtime.syntaxer_port = settings().get('server_port', 18000)
-showTooltipOverGutter = settings().get('show_tooltip_over_gutter', True)
-
-os.environ["syntaxer_dir"] = path.dirname(Runtime.cscs_path)
-# os.environ["CSSCRIPT_ROSLYN"] = path.dirname(Runtime.cscs_path) may need to be the way for future
-# print('syntaxer_dir', os.environ["syntaxer_dir"])
+deploy_shadow_dir('cs-script',"cs-script_v"+version)
+deploy_shadow_dir('cs-syntaxer', "syntaxer_v"+version)
 clear_old_versions_but(version)
-# -------------------------
 
-isDotNetCore = True;
-
-
-def init_environment():
-    print_config()
-    
-
+showTooltipOverGutter = settings().get('show_tooltip_over_gutter', True)
 # -------------------------
 
 def print_config():
@@ -222,6 +186,22 @@ def print_config():
     print('syntaxcheck_on_save: ', settings().get('syntaxcheck_on_save', True))
     print('server_autostart: ', settings().get('server_autostart', True))
     print('----------------')
+    # start_syntax_server()
+
+    sublime.status_message('Starting syntaxer server...')
+
+    args = ['dotnet']
+    args.append(Runtime.syntaxer_path)
+    args.append('-listen')
+    args.append('-port:'+str(Runtime.syntaxer_port))
+    args.append('-timeout:3000')
+    args.append('-client:{0}'.format(os.getpid()))
+    args.append('-cscs_path:{0}'.format(Runtime.cscs_path))
+    args = to_args(args)
+
+    start = time.time()
+    subprocess.Popen(args, shell=True)
+    print('> Syntaxer server started:', time.time()-start, 'seconds')
 
 # -------------------------
 from .imports.syntaxer import *
@@ -313,20 +293,19 @@ class settings_listener(sublime_plugin.EventListener):
             on_plugin_loaded()
 
             self.callback()
-            os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(syntaxerPort)
+            os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(Runtime.syntaxer_port)
             settings().add_on_change("cscs_path", self.callback)
             settings().add_on_change("server_port", self.on_port_changed)
 
 
     def on_port_changed(self):
-        global syntaxerPort
 
         # may be fired when setting are not available yet
         try:
             port = settings().get('server_port', 18000)
-            if syntaxerPort != port:
-                syntaxerPort = port
-                os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(syntaxerPort)
+            if Runtime.syntaxer_port != port:
+                Runtime.syntaxer_port = port
+                os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(Runtime.syntaxer_port)
         except :
             pass
 
@@ -522,9 +501,11 @@ class csscript_listener(sublime_plugin.EventListener):
 class csscript_show_config(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
-        ensure_default_config(Runtime.cscs_path)
-        config_file = path.join(path.dirname(Runtime.cscs_path), 'css_config.xml')
-        sublime.active_window().open_file(config_file)
+        run_cscs(\
+            ['-config'], \
+            handle_line = lambda line: output_view_write_line(out_panel, line), \
+            on_done=lambda: sublime.show(1, 1), \
+            header= 'CS-Script configuration (see `https://github.com/oleg-shilo/cs-script/wiki/CS-Script---Command-Line-Interface#-configoption`)')
 
 # =================================================================================
 # CS-Script code formatter service

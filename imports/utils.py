@@ -6,6 +6,7 @@ import sublime
 import sublime_plugin
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
+from distutils.version import LooseVersion, StrictVersion
 from os import path
 
 
@@ -15,46 +16,91 @@ new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'new_sc
 bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script'+ os.sep)
 bin_src = path.join(plugin_dir, 'bin')
 
+def settings():
+    return sublime.load_settings("cs-script.sublime-settings")
+
+def save_settings():
+    sublime.save_settings("cs-script.sublime-settings")
+
 # =================================================================================
 # Plugin runtime configuration
 # =================================================================================
 class Runtime():
     cscs_path = None
     syntaxer_path = None
-    syntaxer_port = 18000
+    min_compatible_css_version = '4.4.2.0'
+    min_compatible_dotnet_version = '6.0.0'
+    max_compatible_dotnet_version = '7.0.0'
+    syntaxer_port = None
     pluginVersion = None
     new_deployment = False
     is_dotnet_core = True
 
-    def settings():
-        return sublime.load_settings("cs-script.sublime-settings")
-    
-    def cscs_run(args):
-        return sublime.load_settings("cs-script.sublime-settings")
-    
-    def init(version):
+    def integrate_with_choco():
+        print(path.join(os.environ["ChocolateyInstall"],'lib','cs-script', 'tools', 'cscs.dll'))
+        print(path.join(os.environ["ChocolateyInstall"],'lib','cs-syntaxer', 'tools', 'syntaxer.dll'))
+
+
+    def init(version, new_deployment):
 
         Runtime.pluginVersion = version
+        Runtime.new_deployment = new_deployment
 
-        if not os.path.isdir(path.join(bin_dest+'syntaxer_v'+version)):
-            Runtime.new_deployment = True
+        Runtime.syntaxer_port = settings().get('syntaxer_port', 18000)
+        Runtime.syntaxer_path = settings().get('syntaxer_path', os.path.expandvars(path.join(bin_dest, 'syntaxer_v'+version, 'syntaxer.dll')))
+        Runtime.cscs_path = settings().get('cscs_path', os.path.expandvars(path.join(bin_dest, 'cs-script_v'+version, 'cscs.dll')))
 
-        cscs_path = Runtime.settings().get('cscs_path', './cscs.exe')
-        Runtime.syntaxer_path = 'C:\\ProgramData\\chocolatey\\lib\\cs-syntaxer\\tools\\syntaxer.exe'
-
-        if Runtime.is_dotnet_core:
-            css_root = os.environ["CSSCRIPT_ROOT"]
-
-            if path.exists(css_root):
-                cscs_path = path.join(css_root, "cscs.dll");
+        # if cscs_path is not set we can try to discover local deployment. if none found then set it to the default        
+        # css_root = os.environ["CSSCRIPT_ROOT"]
+        # if  cscs_path == None and path.exists(css_root):
+        #     cscs_path = path.join(css_root, "cscs.dll");
             
-        if cscs_path == None:
-            Runtime.cscs_path = path.join(bin_dest, 'cscs.exe')
-        elif cscs_path:
-            if cscs_path == './cscs.exe':
-                Runtime.cscs_path = path.join(bin_dest, 'cscs.exe')
-            else:
-                Runtime.cscs_path = os.path.abspath(os.path.expandvars(cscs_path))
+        # if cscs_path == None:
+        #     Runtime.cscs_path = path.join(bin_dest, 'cs-script_v'+version, 'cscs.dll')
+        # elif cscs_path:
+        #     Runtime.cscs_path = os.path.abspath(os.path.expandvars(cscs_path))
+
+        if Runtime.cscs_path:
+            settings().set('cscs_path', Runtime.cscs_path)
+            settings().set('syntaxer_path', Runtime.syntaxer_path)
+            settings().set('syntaxer_port', Runtime.syntaxer_port)
+            save_settings()
+                
+# =================================================================================
+# Plugin utils
+# =================================================================================
+def get_dotnet_version():
+        try:
+            proc = subprocess.Popen(['dotnet', "--version"], stdout=subprocess.PIPE, shell=True)
+
+            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
+                return line.strip()
+
+        except Exception as e:
+            print(e)
+            return None
+# -----------------
+def get_css_version():
+    try:
+        proc = subprocess.Popen(['dotnet', Runtime.cscs_path, "--version"], stdout=subprocess.PIPE, shell=True)
+
+        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
+            return line.strip()
+
+    except Exception as e:
+        print(e)
+        return None
+# -----------------
+def get_syntaxer_version():
+    try:
+        proc = subprocess.Popen(['dotnet', Runtime.syntaxer_path], stdout=subprocess.PIPE, shell=True)
+        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
+            # 'CS-Syntaxer v3.1.0.0'
+            return line.strip().split(' ', 1)[-1][1:]
+
+    except Exception as e:
+        print(e)
+        return None
 # =================================================================================
 # Sublime utils
 # =================================================================================
@@ -82,10 +128,7 @@ def which(file):
 
     except Exception as e:
         print('Cannot execute "which" for '+file+'.', e)
-
-# =================================================================================
-# Sublime utils
-# =================================================================================
+# -----------------
 def get_output_view(name):
     view = sublime.active_window().find_output_panel(name)
     if not view:
@@ -213,6 +256,63 @@ def get_saved_doc(view, location = -1):
         return (current_file, location, as_temp_file)
     else:
         return (view.file_name(), location, as_temp_file)
+# -----------------
+is_deployment_problem_reported= False
+
+def check_environment(force_show_doc):
+
+    current_dotnet_version = get_dotnet_version()
+    current_css_version = get_css_version() 
+    current_syntaxer_version = get_syntaxer_version() 
+
+    error = None
+
+    if current_dotnet_version == None:
+        error = ".NET is not found\n"
+
+    elif LooseVersion(current_dotnet_version) <  LooseVersion(Runtime.min_compatible_dotnet_version) \
+         or LooseVersion(current_dotnet_version) >=  LooseVersion(Runtime.max_compatible_dotnet_version):
+        error = "Installed .NET version is incompatible.\n"
+
+    if current_css_version == None:
+        error = (error if error else '') + "CS-Script is not found.\n"
+    
+    if current_syntaxer_version == None:
+        error = (error if error else '') + "Syntaxer is not found.\n"
+
+    report = ''    
+
+    if error:
+        report = '*************** CS-Script ******************\n' +\
+                'ERROR: \n' + error +\
+                '\nEnvironment requirements and setup instructions:\n' +\
+                '  https://github.com/oleg-shilo/cs-script/wiki/CLI-Environment-Specification\n' +\
+                '**********************************************'        
+        print(report)
+    else:
+        report = '*************** CS-Script ******************\n'\
+                 '.NET:      v' + str(current_dotnet_version) + '\n'\
+                 'CS-Script: v' + str(current_css_version) + '\n'\
+                 'Syntaxer:  v' + str(current_syntaxer_version) + '\n'\
+                 '---\n'\
+                 'CS-Script (script engine): ' + Runtime.cscs_path + '\n'\
+                 'Syntaxer (C# syntax server): ' + Runtime.syntaxer_path + '\n'\
+                 '---\n'\
+                 '\n'\
+                 '\n'\
+                 'Environment requirements and setup instructions:\n'\
+                 '  https://github.com/oleg-shilo/cs-script/wiki/CLI-Environment-Specification\n'\
+                 '\n'\
+                 'Use "right-click > CS-Script > Settings > Plugin Config" if you need to change'\
+                 ' the location of the integrated CS-Script engine and syntaxer\n'\
+                 '**********************************************'
+
+
+    if force_show_doc or Runtime.new_deployment:
+        deployment_info = os.path.join(plugin_dir, 'deployment.md')
+        with open(deployment_info, "w", encoding="utf-8") as f: f.write(report)
+        sublime.active_window().open_file(deployment_info)
+
 # -----------------
 def show_console():
     sublime.active_window().run_command("show_panel", {"panel": "console", "toggle": False})

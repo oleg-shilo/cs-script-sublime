@@ -40,6 +40,10 @@
         "command": "csscript_show_output",
     },
     {
+        "caption": "cs-script: Check Deployment",
+        "command": "csscript_check_deployment",
+    },
+    {
         "caption": "cs-script: Show CS-Script project",
         "command": "csscript_list_proj_files",
     },

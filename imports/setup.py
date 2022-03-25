@@ -24,6 +24,7 @@ def save_settings():
     return sublime.save_settings("cs-script.sublime-settings")
 
 
+
 # =================================================================================
 # C#/CS-Script setup service
 # =================================================================================
@@ -50,20 +51,20 @@ class csscript_setup(sublime_plugin.EventListener):
         required_clr = '6.˟'
         incompatible_clr = True
 
-        current_dotnet_version = csscript_setup.get_dotnet_version()
+        current_dotnet_version = get_dotnet_version()
         
         if current_dotnet_version == None:
             detected_clr = '.NET:       <not found>'
             detected_css = 'CS-Script:  <unknown>'
 
-        elif LooseVersion(current_dotnet_version) <  LooseVersion('6.0.0') or LooseVersion(current_dotnet_version) >=  LooseVersion('7.0.0'):
+        elif LooseVersion(current_dotnet_version) <  LooseVersion(Runtime.min_compatible_dotnet_version) or LooseVersion(current_dotnet_version) >=  LooseVersion(Runtime.max_compatible_dotnet_version):
             detected_clr = '.NET:       v'+str(current_dotnet_version) + ' <incompatible> - required v'+required_clr
             detected_css = 'CS-Script:  <unknown>'
 
         elif LooseVersion(current_dotnet_version) >=  LooseVersion('6.0.0') :
             # only run cscs if compatible clr is found
             incompatible_clr = False
-            css_ver  = csscript_setup.get_css_version()
+            css_ver  = get_css_version()
             detected_clr = '.NET:       v' + str(current_dotnet_version)
             detected_css = 'CS-Script:  v' + css_ver
 
@@ -77,28 +78,6 @@ Please visit .NET website (https://dotnet.microsoft.com) and follow the instruct
                        .replace('{det_clr}', detected_clr) \
                        .replace('{det_css}', detected_css) \
                        .replace('{clr_install}', clr_install)
-    # -----------------
-    def get_dotnet_version():
-        try:
-            proc = subprocess.Popen(['dotnet', "--version"], stdout=subprocess.PIPE, shell=True)
-
-            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
-                return line.strip()
-
-        except Exception as e:
-            print(e)
-            return None
-    # -----------------
-    def get_css_version():
-        try:
-            proc = subprocess.Popen(['dotnet', Runtime.cscs_path, "--version"], stdout=subprocess.PIPE, shell=True)
-
-            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
-                return line.strip()
-
-        except Exception as e:
-            print(e)
-            return None
 
     # -----------------
     def on_activated(self, view):
@@ -113,6 +92,8 @@ Please visit .NET website (https://dotnet.microsoft.com) and follow the instruct
                 sublime.set_timeout_async(self.show_release_notes, 500)
 
             settings().set('last_run_version', csscript_setup.version)
+            settings().set('cscs_path', Runtime.cscs_path)
+            settings().set('syntaxer_path', Runtime.syntaxer_path)
             save_settings()
     # -----------------
     def show_readme(self):

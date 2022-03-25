@@ -19,19 +19,14 @@ from .utils import *
 out_panel = 'CS-Script'
 
 
-
-syntaxerApp = None
-syntaxerPort = None
-
 # plugin_dir = path.dirname(path.dirname(__file__))
 # Runtime.cscs_path = path.join(plugin_dir, 'bin', 'cscs.exe')
-# syntaxerApp = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'syntaxer_v'+os.environ["cs-script.st3.ver"],'syntaxer.exe')
-# syntaxerPort = 18000
 
 def syntaxer_print_config():
     print('syntaxer_cscs: ', Runtime.cscs_path)
-    print('syntaxer_server: ', Runtime.syntaxer_path)
+    print('syntaxer_path: ', Runtime.syntaxer_path)
     print('syntaxer_port: ', Runtime.syntaxer_port)
+
 
 def is_linux():
     return os.name == 'posix' and platform.system() == 'Linux'
@@ -60,20 +55,15 @@ def to_args(args):
 def start_syntax_server():
     try:
         sublime.status_message('Starting syntaxer server...')
-        serverApp = syntaxerApp
 
-        args = []
-        # if is_linux():
-            # args.append('mono')
-
-        args.append(serverApp)
+        args = ['dotnet']
+        args.append(Runtime.syntaxer_path)
         args.append('-listen')
-        args.append('-port:'+str(syntaxerPort))
+        args.append('-port:'+str(Runtime.syntaxer_port))
         args.append('-timeout:3000')
         args.append('-client:{0}'.format(os.getpid()))
         args.append('-cscs_path:{0}'.format(Runtime.cscs_path))
         args = to_args(args)
-        # args = '{0} -listen -port:{1} -client:{2}'.fnormat(serverApp, syntaxerPort, os.getpid())
 
         start = time.time()
         subprocess.Popen(args, shell=True)
@@ -86,13 +76,13 @@ def start_syntax_server():
 
 # Start the server as soon as possible. If the server is already running the next call will do nothing.
 # The server will terminate itself after the last client exits
-start_syntax_server()
+# start_syntax_server()
 
 # -----------------
 def send_exit_request():
     try:
         clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clientsocket.connect(('localhost', syntaxerPort))
+        clientsocket.connect(('localhost', Runtime.syntaxer_port))
         clientsocket.send('-exit'.encode('utf-8'))
     except socket_error as serr:
         pass
@@ -135,7 +125,7 @@ def try_send_cscs_path(cscs_path):
     try:
         start_time = time.time()
         clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clientsocket.connect(('localhost', syntaxerPort))
+        clientsocket.connect(('localhost', Runtime.syntaxer_port))
         request = '-cscs_path:{0}'.format(cscs_path)
         clientsocket.send(request.encode('utf-8'))
 
@@ -165,7 +155,7 @@ def try_send_cscs_path(cscs_path):
 def send_pkill_request(pid, pname=None):
     try:
         clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clientsocket.connect(('localhost', syntaxerPort))
+        clientsocket.connect(('localhost', Runtime.syntaxer_port))
         request = '-pkill\n-pid:{0}'.format(pid)
         if pname:
             request = request + '\n-pname:' + pname
@@ -177,7 +167,7 @@ def send_pkill_request(pid, pname=None):
 def send_popen_request(command):
     try:
         clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clientsocket.connect(('localhost', syntaxerPort))
+        clientsocket.connect(('localhost', Runtime.syntaxer_port))
         request = '-popen:{0}'.format(command)
         clientsocket.send(request.encode('utf-8'))
     except socket_error as serr:
@@ -187,7 +177,7 @@ def send_popen_request(command):
 def send_syntax_request(file, location, operation):
     try:
         clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clientsocket.connect(('localhost', syntaxerPort))
+        clientsocket.connect(('localhost', Runtime.syntaxer_port))
         request = '-client:{0}\n-op:{1}\n-script:{2}\n-pos:{3}'.format(os.getpid(), operation, file, location)
         clientsocket.send(request.encode('utf-8'))
         response = clientsocket.recv(1024*1024)
