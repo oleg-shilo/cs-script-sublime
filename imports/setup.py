@@ -92,8 +92,6 @@ Please visit .NET website (https://dotnet.microsoft.com) and follow the instruct
                 sublime.set_timeout_async(self.show_release_notes, 500)
 
             settings().set('last_run_version', csscript_setup.version)
-            settings().set('cscs_path', Runtime.cscs_path)
-            settings().set('syntaxer_path', Runtime.syntaxer_path)
             save_settings()
     # -----------------
     def show_readme(self):

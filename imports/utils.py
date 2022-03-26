@@ -46,9 +46,14 @@ class Runtime():
         Runtime.pluginVersion = version
         Runtime.new_deployment = new_deployment
 
-        Runtime.syntaxer_port = settings().get('syntaxer_port', 18000)
-        Runtime.syntaxer_path = settings().get('syntaxer_path', os.path.expandvars(path.join(bin_dest, 'syntaxer_v'+version, 'syntaxer.dll')))
-        Runtime.cscs_path = settings().get('cscs_path', os.path.expandvars(path.join(bin_dest, 'cs-script_v'+version, 'cscs.dll')))
+        Runtime.syntaxer_port = settings().get('syntaxer_port')
+        Runtime.syntaxer_path = settings().get('syntaxer_path')
+        Runtime.cscs_path = settings().get('cscs_path')
+
+        # cannot use default value with get(...) as it is not triggered if the config value is null but only absent
+        if not Runtime.syntaxer_path: Runtime.syntaxer_path = os.path.expandvars(path.join(bin_dest, 'syntaxer_v'+version, 'syntaxer.dll'))
+        if not Runtime.cscs_path: Runtime.cscs_path = os.path.expandvars(path.join(bin_dest, 'cs-script_v'+version, 'cscs.dll'))
+        if not Runtime.syntaxer_port: Runtime.syntaxer_port = 18000
 
         # if cscs_path is not set we can try to discover local deployment. if none found then set it to the default        
         # css_root = os.environ["CSSCRIPT_ROOT"]

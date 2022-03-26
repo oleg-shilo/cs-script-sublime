@@ -63,7 +63,15 @@ def clear_old_versions_but(version):
         except:
             pass
 
+    def delete_file(file):
+        if os.path.isfile(file):
+            os.remove(file)
 
+    # old cs-script engine, prior .NET 6 migration
+    delete_file(path.join(bin_dest, 'cscs.exe'))   
+    delete_file(path.join(bin_dest, 'css_config.xml'))  
+    delete_file(path.join(bin_dest, 'CSSRoslynProvider.dll'))  
+            
     sub_dirs = [name for name in os.listdir(bin_dest)
            if os.path.isdir(os.path.join(bin_dest, name))]
 
