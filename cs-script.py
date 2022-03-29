@@ -12,10 +12,13 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-from .imports.utils import *
+version = '1.2.3'  # build 0
+os.environ["PACKAGE_VERSION"] = version
 
-version = '1.2.11'  # build 0
+from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
 new_deployment = (not os.path.isdir(path.join(bin_dest+'cs-script_v'+version)))
+
+
 
 if sys.version_info < (3, 3): raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
 
@@ -186,8 +189,8 @@ clear_old_versions_but(version)
 
 showTooltipOverGutter = settings().get('show_tooltip_over_gutter', True)
 # -------------------------
-
 def print_config():
+
     print('----------------')
     print('cscs: ', Runtime.cscs_path)
     syntaxer_print_config()

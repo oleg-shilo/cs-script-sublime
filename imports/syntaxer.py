@@ -224,7 +224,7 @@ def popen_redirect(args):
     cmd = ''
     for arg in all_args:
         cmd = cmd + '"'+arg+'" '
-    print('popen_redirect: ' + cmd)
+    # print('popen_redirect: ' + cmd)
     return subprocess.Popen(all_args, stdout=subprocess.PIPE, shell=True)
 # -----------------
 def popen_redirect_tofile(args, file):

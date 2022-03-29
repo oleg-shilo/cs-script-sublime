@@ -5,6 +5,7 @@ import sys
 import sublime
 import sublime_plugin
 import subprocess
+import time
 from subprocess import Popen, PIPE, STDOUT
 from distutils.version import LooseVersion, StrictVersion
 from os import path
@@ -50,11 +51,17 @@ class Runtime():
         Runtime.syntaxer_path = settings().get('syntaxer_path')
         Runtime.cscs_path = settings().get('cscs_path')
 
-        # cannot use default value with get(...) as it is not triggered if the config value is null but only absent
-        if not Runtime.syntaxer_path: Runtime.syntaxer_path = os.path.expandvars(path.join(bin_dest, 'syntaxer_v'+version, 'syntaxer.dll'))
-        if not Runtime.cscs_path: Runtime.cscs_path = os.path.expandvars(path.join(bin_dest, 'cs-script_v'+version, 'cscs.dll'))
-        if not Runtime.syntaxer_port: Runtime.syntaxer_port = 18000
 
+
+
+        # cannot use default value with get(...) as it is not triggered if the config value is null but only absent
+        if not Runtime.syntaxer_path: Runtime.syntaxer_path = path.join(bin_dest, 'syntaxer_v'+version, 'syntaxer.dll')
+        if not Runtime.cscs_path: Runtime.cscs_path = os.path.path.join(bin_dest, 'cs-script_v'+version, 'cscs.dll')
+        if not Runtime.syntaxer_port: Runtime.syntaxer_port = 18000
+        
+        Runtime.syntaxer_path = os.path.expandvars(Runtime.syntaxer_path)
+        Runtime.cscs_path = os.path.expandvars(Runtime.cscs_path)
+        
         # if cscs_path is not set we can try to discover local deployment. if none found then set it to the default        
         # css_root = os.environ["CSSCRIPT_ROOT"]
         # if  cscs_path == None and path.exists(css_root):
@@ -66,8 +73,8 @@ class Runtime():
         #     Runtime.cscs_path = os.path.abspath(os.path.expandvars(cscs_path))
 
         if Runtime.cscs_path:
-            settings().set('cscs_path', Runtime.cscs_path)
-            settings().set('syntaxer_path', Runtime.syntaxer_path)
+            settings().set('cscs_path', Runtime.cscs_path.replace('cs-script_v'+version, 'cs-script_v%PACKAGE_VERSION%'))
+            settings().set('syntaxer_path', Runtime.syntaxer_path.replace('syntaxer_v'+version, 'syntaxer_v%PACKAGE_VERSION%'))
             settings().set('syntaxer_port', Runtime.syntaxer_port)
             save_settings()
                 
@@ -75,22 +82,32 @@ class Runtime():
 # Plugin utils
 # =================================================================================
 def get_dotnet_version():
-        try:
-            proc = subprocess.Popen(['dotnet', "--version"], stdout=subprocess.PIPE, shell=True)
-
-            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
-                return line.strip()
-
-        except Exception as e:
-            print(e)
-            return None
-# -----------------
-def get_css_version():
     try:
-        proc = subprocess.Popen(['dotnet', Runtime.cscs_path, "--version"], stdout=subprocess.PIPE, shell=True)
+        proc = subprocess.Popen(['dotnet', "--version"], stdout=subprocess.PIPE, shell=True)
 
         for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
             return line.strip()
+
+    except Exception as e:
+        print(e)
+        return None
+# -----------------
+def get_css_version():
+    try:
+        log_file = Runtime.cscs_path+".ver.log"
+        proc = subprocess.Popen(['dotnet', Runtime.cscs_path, "--version", log_file], stdout=subprocess.PIPE, shell=True)
+
+        subprocess\
+            .Popen(['dotnet', Runtime.cscs_path, "--version", log_file], stdout=subprocess.PIPE, shell=True)\
+            .wait()
+
+        content = ''    
+        with open(log_file, "r") as f:
+            content = content + f.read()
+
+        os.remove(log_file) 
+
+        return content 
 
     except Exception as e:
         print(e)
