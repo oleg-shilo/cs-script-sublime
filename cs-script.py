@@ -20,6 +20,47 @@ new_deployment = (not os.path.isdir(path.join(bin_dest+'cs-script_v'+version)))
 
 
 
+# -----------------
+bash_string = r'''#!/bin/bash
+dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help > /home/user/.config/sublime-text/Packages/User/cs-script/help.txt 
+'''
+# output = subprocess.check_output(bash_string, shell=True, executable='/bin/bash')
+# -----------------
+
+
+print('111111111111')
+# print(sublime.platform())
+
+# with open('/home/user/.config/sublime-text/Packages/User/cs-script/help.txt', 'w') as f:
+# subprocess.Popen(['dotnet', "/home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll", '-help', \
+#                                 '>', "/home/user/.config/sublime-text/Packages/User/cs-script/help.txt"], stdout=PIPE, shell=True)
+
+# os.system("dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help > /home/user/.config/sublime-text/Packages/User/cs-script/help.md")
+
+# log_file = open('/home/user/.config/sublime-text/Packages/User/cs-script/log.log', 'w')
+# my_out = log_file
+# my_err = log_file
+# command = ['dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help']
+
+command = ['dotnet', '/home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll', '/home/user/.config/sublime-text/Packages/User/cs-script/new_script.cs']
+# execute(command, print)
+
+# p = subprocess.Popen(command, stdout=my_out, stderr=my_err, shell=True).wait()
+# p = subprocess.Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)  
+# # for line in p.stdout:  
+# #  line = line.rstrip()  
+# out, error_msg = p.communicate()
+
+# print(get_dotnet_version())
+
+# print(error_msg)
+
+# os.system("dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help > /home/user/.config/sublime-text/Packages/User/cs-script/help.md")
+    # subprocess.call(['dotnet "/home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll"'], stdout=f)
+
+print('222222222222')
+
+
 if sys.version_info < (3, 3): raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
 
 # ------------------------- 
@@ -253,7 +294,7 @@ class csscript_new(sublime_plugin.TextCommand):
             content = '// The previous content of this file has been saved into: '+backup_file+' \n\n'
 
         subprocess\
-            .Popen(['dotnet', Runtime.cscs_path, '-new:toplevel', new_file_path], stdout=subprocess.PIPE, shell=True)\
+            .Popen(to_args(['dotnet', Runtime.cscs_path, '-new:toplevel', new_file_path]), stdout=subprocess.PIPE, shell=True)\
             .wait()
 
         with open(new_file_path, "r") as f:
@@ -282,10 +323,43 @@ class csscript_help(sublime_plugin.TextCommand):
 class csscript_css_help(sublime_plugin.TextCommand):
     # -----------------
     def run(self, edit):
+
+        if is_linux() and settings().get('allow_large_stdout_on_linux', False) != True:
+            execute_in_terminal(["dotnet", Runtime.cscs_path, "-help"])
+            output_view_show(out_panel)
+            output_view_clear(out_panel)
+            output_view_write_line(out_panel, "It has been observed that Sublime Text Python interpreter (on some specs of Linux in virtual environments) exhibits difficulties "\
+                                              "capturing subprocess output of a significant size. Thus the automatic generation of the documentation is ST is disabled.")
+            output_view_write_line(out_panel, "You can access CS-Script help by executing the following manual command in the terminal:")
+            output_view_write_line(out_panel, "")
+            output_view_write_line(out_panel, "dotnet "+Runtime.cscs_path+" -help")
+            output_view_write_line(out_panel, "")
+            output_view_write_line(out_panel, "You can stil enable the automatic documentation generation by setting the plugin setting `allow_large_stdout_on_linux` to `true`.")
+
+
+            # The next line works perfectly in terminal and in ST
+            # retval = os.system('ls -l > /home/user/.config/sublime-text/Packages/User/cs-script/help.txt ') 
+
+            # The next 3 lines work perfectly in terminal but none in ST
+            # retval = os.system('dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help -out:/home/user/.config/sublime-text/Packages/User/cs-script/help.txt ')
+            # retval = os.system('dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help > /home/user/.config/sublime-text/Packages/User/cs-script/help.txt ')
+            # retval = os.system('dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help ')
+
+            # The next line aslso works perfectly in terminal and in ST. The only difference between `--version` and `-help` is the larger amout of the output for `-help`
+            # retval = os.system('dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll --version > /home/user/.config/sublime-text/Packages/User/cs-script/help.txt')
+            # output_view_write_line(out_panel, str(retval))
+
+            return
+
         file = os.path.join(plugin_dir, 'cs-script.help.txt')
 
-        with open(file, "w") as f:
-            popen_tofile(['dotnet', Runtime.cscs_path, "-help"], f).wait()
+        with open(file, "w") as out:
+            # subprocess.Popen(to_args(['dotnet', Runtime.cscs_path, '-?']), stdout=out, stderr=out, shell=True).wait()
+
+            process = popen_redirect(['dotnet', Runtime.cscs_path, '-help']) 
+            while process.poll() is None: # may not read the last few lines of output
+                out.write(process.stdout.readline().decode('utf-8') + "\n")
+
 
         if os.path.exists(file):
             sublime.active_window().open_file(file)
@@ -539,27 +613,28 @@ class csscript_format_code(CodeViewTextCommand):
         if as_temp_file:
             os.remove(curr_doc)
 
-        if response.startswith('<error>'):
-            print('Formatting error:', response.replace('<error>', ''))
-        else:
-            parts = response.split('\n', 1)
+        if response:
+            if response.startswith('<error>'):
+                print('Formatting error:', response.replace('<error>', ''))
+            else:
+                parts = response.split('\n', 1)
 
-            new_file_location = int(parts[0])
-            formatted_code = parts[1]
+                new_file_location = int(parts[0])
+                formatted_code = parts[1]
 
-            new_text_location = to_text_pos(formatted_code, new_file_location)
-            new_text = formatted_code.replace('\r', '')
+                new_text_location = to_text_pos(formatted_code, new_file_location)
+                new_text = formatted_code.replace('\r', '')
 
-            self.view.replace(edit, sublime.Region(0, self.view.size()), new_text)
-            # with open(self.view.file_name(), "w") as file:
-            #     file.write(formatted_code)
+                self.view.replace(edit, sublime.Region(0, self.view.size()), new_text)
+                # with open(self.view.file_name(), "w") as file:
+                #     file.write(formatted_code)
 
-            # surprisingly mapping of selection is not required. ST3 does it by itself
-            # self.view.sel().clear()
-            # self.view.sel().add(sublime.Region(new_text_location, new_text_location))
+                # surprisingly mapping of selection is not required. ST3 does it by itself
+                # self.view.sel().clear()
+                # self.view.sel().add(sublime.Region(new_text_location, new_text_location))
 
-            # print('formatting done')
-            # sublime.active_window().run_command("save")
+                # print('formatting done')
+                # sublime.active_window().run_command("save")
 
 
 # =================================================================================
@@ -1215,36 +1290,52 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
             script = curr_doc
             clear_and_print_result_header(self.view.file_name())
             
-            process = popen_redirect(['dotnet', Runtime.cscs_path, script]) 
+            def on_process_start(p):
+                output_view_write_line(out_panel, '[Started pid: '+str(p.pid)+']', True)
+                csscript_execute_and_redirect.running_process = p
 
-            output_view_write_line(out_panel, '[Started pid: '+str(process.pid)+']', True)
-            
-            csscript_execute_and_redirect.running_process = process
+            def on_process_output_line(line):
+                if line != '':
+                    output_view_append(out_panel, line)
 
-            def process_line(output, ignore_empty = False):
-                try:
-                    output = output.decode('utf-8').rstrip()
-                    if not ignore_empty or output != '':
-                        output_view_append(out_panel, output)
-                except UnicodeDecodeError:
-                    append_output('<Decoding error. You may want to adjust script output encoding in settings.>')
-                    # process.terminate()
+            execute(['dotnet', Runtime.cscs_path, script], on_process_output_line, on_process_start)
 
-            while process.poll() is None: # may not read the last few lines of output
-                output = process.stdout.readline()
-                process_line(output)
-
-            while (True): # drain any remaining data
-                try:
-                    output = process.stdout.readline()
-                    if output == b'':
-                        break;
-                    process_line(output, ignore_empty=True)
-                except :
-                    pass
-
-            csscript_execute_and_redirect.running_process = None
             output_view_write_line(out_panel, "[Execution completed]")
+            
+            csscript_execute_and_redirect.running_process = None
+            return
+
+
+            # process = subprocess.Popen(to_args(['dotnet', Runtime.cscs_path, script]),  stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            
+            # output_view_write_line(out_panel, '[Started pid: '+str(process.pid)+']', True)
+            
+            # csscript_execute_and_redirect.running_process = process
+
+            # def process_line(output, ignore_empty = False):
+            #     try:
+            #         output = output.decode('utf-8').rstrip()
+            #         if not ignore_empty or output != '':
+            #     except UnicodeDecodeError:
+            #         append_output('<Decoding error. You may want to adjust script output encoding in settings.>')
+            #         # process.terminate()
+
+            # while process.poll() is None: # may not read the last few lines of output
+            #     output = process.stdout.readline()
+            #     process_line(output)
+
+            # while (True): # drain any remaining data
+            #     try:
+            #         output = process.stdout.readline()
+            #         if output == b'':
+            #             output = process.stderr.readline()
+            #             break;
+            #         process_line(output, ignore_empty=True)
+            #     except :
+            #         pass
+
+            # csscript_execute_and_redirect.running_process = None
+            # output_view_write_line(out_panel, "[Execution completed]")
 
         #must be done in a separate thread otherwise line rendering is suspended until process exits
         sublime.set_timeout_async(run, 10)
@@ -1297,6 +1388,9 @@ class csscript_execute_and_wait(CodeViewTextCommand):
         if not path.exists(Runtime.cscs_path):
             print('Error: cannot find CS-Script launcher - ', Runtime.cscs_path)
         else:
+            execute_in_terminal(['dotnet', Runtime.cscs_path, '-l', curr_doc])
+
+            return
             if os.name == 'nt':
                 os.system('dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"')
             else:
@@ -1306,10 +1400,7 @@ class csscript_execute_and_wait(CodeViewTextCommand):
 
                 cwd = os.path.dirname(curr_doc)
 
-                css_command = ' '
-
-                for arg in args:
-                    css_command = css_command + '"'+arg+'" '
+                css_command = ' dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"'
 
                 command = "bash -c \"{0} ; exec bash\"".format(css_command)
                 args =[TerminalSelector.get(), '-e', command]
@@ -1317,6 +1408,7 @@ class csscript_execute_and_wait(CodeViewTextCommand):
                 if 'NUGET_INCOMPATIBLE_HOST' in env:
                     del env['NUGET_INCOMPATIBLE_HOST']
 
+                print(args)
                 subprocess.Popen(args, cwd=cwd, env=env)
 
 # =================================================================================

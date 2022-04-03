@@ -1,0 +1,15 @@
+*************** CS-Script ******************
+.NET:      v6.0.201
+CS-Script: v4.4.3.0
+Syntaxer:  v4.4.3.0
+---
+CS-Script (script engine): /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll
+Syntaxer (C# syntax server): /home/user/.config/sublime-text/Packages/User/cs-script/syntaxer_v1.2.3/syntaxer.dll
+---
+
+
+Environment requirements and setup instructions:
+  https://github.com/oleg-shilo/cs-script/wiki/CLI-Environment-Specification
+
+Use "right-click > CS-Script > Settings > Plugin Config" if you need to change the location of the integrated CS-Script engine and syntaxer
+**********************************************

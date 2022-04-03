@@ -6,10 +6,10 @@ import sublime
 import sublime_plugin
 import subprocess
 import time
+import platform
 from subprocess import Popen, PIPE, STDOUT
 from distutils.version import LooseVersion, StrictVersion
 from os import path
-
 
 plugin_dir = path.dirname(path.dirname(__file__))
 plugin_name = path.basename(plugin_dir)
@@ -23,6 +23,84 @@ def settings():
 def save_settings():
     sublime.save_settings("cs-script.sublime-settings")
 
+# -----------------
+def is_win():
+    return sublime.platform() == 'windows'
+    
+def is_linux():
+    return os.name == 'posix' and platform.system() == 'Linux'
+
+def is_mac():
+    return os.name == 'posix' and platform.system() == 'Darwin'
+    
+def to_args(args):
+    # excellent discussion about why popen+shell doesn't work on Linux
+    # http://stackoverflow.com/questions/1253122/why-does-subprocess-popen-with-shell-true-work-differently-on-linux-vs-windows
+        
+    if os.name == 'posix' and platform.system() == 'Linux': 
+        result = ''
+        for arg in args:
+            result = result + '"'+arg+'" '
+        return [result.rstrip()]
+    return args
+
+def execute(args, onLineOut, onStart=None):
+    try:
+        # excellent discussion about why popen+shell doesn't work on Linux
+        # http://stackoverflow.com/questions/1253122/why-does-subprocess-popen-with-shell-true-work-differently-on-linux-vs-windows
+        if os.name == 'posix' and platform.system() == 'Linux': 
+            result = ''
+            for arg in args:
+                result = result + '"'+arg+'" '
+            all_args = [result.rstrip()]
+        else:
+            all_args = args
+
+        p = subprocess.Popen(all_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        # out, error_msg = p.communicate() # to get bytes
+        
+        if onStart: 
+            onStart(p)
+
+        if onLineOut:
+            for line in io.TextIOWrapper(p.stdout, encoding="utf-8"):
+                onLineOut(line.strip())
+
+            for line in io.TextIOWrapper(p.stderr, encoding="utf-8"):
+                onLineOut(line.strip())
+
+        p.wait()
+        time.sleep(0.3)
+                
+    except Exception as e:
+        print(e)
+        return None
+
+def execute_in_terminal(args):
+    try:
+        
+        all_args = ''
+        for arg in args:
+            all_args = all_args + '"'+arg+'" '
+        all_args = all_args.rstrip()
+
+        if os.name == 'nt':
+            os.system(all_args)
+        else:
+            # Linux and Mac
+            env = os.environ.copy()
+
+
+            command = "bash -c \" {0} ; exec bash\"".format(all_args)
+            args =[TerminalSelector.get(), '-e', command]
+
+            subprocess.Popen(args)
+
+
+
+    except Exception as e:
+        print(e)
+        return None
 # =================================================================================
 # Plugin runtime configuration
 # =================================================================================
@@ -51,17 +129,18 @@ class Runtime():
         Runtime.syntaxer_path = settings().get('syntaxer_path')
         Runtime.cscs_path = settings().get('cscs_path')
 
-
-
+        version_envar_pattern = '$PACKAGE_VERSION'
+        if is_win():
+            version_envar_pattern = '%PACKAGE_VERSION%'
 
         # cannot use default value with get(...) as it is not triggered if the config value is null but only absent
         if not Runtime.syntaxer_path: Runtime.syntaxer_path = path.join(bin_dest, 'syntaxer_v'+version, 'syntaxer.dll')
-        if not Runtime.cscs_path: Runtime.cscs_path = os.path.path.join(bin_dest, 'cs-script_v'+version, 'cscs.dll')
+        if not Runtime.cscs_path: Runtime.cscs_path = path.join(bin_dest, 'cs-script_v'+version, 'cscs.dll')
         if not Runtime.syntaxer_port: Runtime.syntaxer_port = 18000
         
         Runtime.syntaxer_path = os.path.expandvars(Runtime.syntaxer_path)
         Runtime.cscs_path = os.path.expandvars(Runtime.cscs_path)
-        
+    
         # if cscs_path is not set we can try to discover local deployment. if none found then set it to the default        
         # css_root = os.environ["CSSCRIPT_ROOT"]
         # if  cscs_path == None and path.exists(css_root):
@@ -73,8 +152,8 @@ class Runtime():
         #     Runtime.cscs_path = os.path.abspath(os.path.expandvars(cscs_path))
 
         if Runtime.cscs_path:
-            settings().set('cscs_path', Runtime.cscs_path.replace('cs-script_v'+version, 'cs-script_v%PACKAGE_VERSION%'))
-            settings().set('syntaxer_path', Runtime.syntaxer_path.replace('syntaxer_v'+version, 'syntaxer_v%PACKAGE_VERSION%'))
+            settings().set('cscs_path', Runtime.cscs_path.replace('cs-script_v'+version, 'cs-script_v'+version_envar_pattern))
+            settings().set('syntaxer_path', Runtime.syntaxer_path.replace('syntaxer_v'+version, 'syntaxer_v'+version_envar_pattern))
             settings().set('syntaxer_port', Runtime.syntaxer_port)
             save_settings()
                 
@@ -83,10 +162,14 @@ class Runtime():
 # =================================================================================
 def get_dotnet_version():
     try:
-        proc = subprocess.Popen(['dotnet', "--version"], stdout=subprocess.PIPE, shell=True)
+        
+        def onOutput(line): 
+            global result 
+            result =  line.strip()
 
-        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
-            return line.strip()
+        execute(['dotnet', "--version"], onOutput)
+
+        return result
 
     except Exception as e:
         print(e)
@@ -94,20 +177,14 @@ def get_dotnet_version():
 # -----------------
 def get_css_version():
     try:
-        log_file = Runtime.cscs_path+".ver.log"
-        proc = subprocess.Popen(['dotnet', Runtime.cscs_path, "--version", log_file], stdout=subprocess.PIPE, shell=True)
 
-        subprocess\
-            .Popen(['dotnet', Runtime.cscs_path, "--version", log_file], stdout=subprocess.PIPE, shell=True)\
-            .wait()
+        def onOutput(line): 
+            global result 
+            result =  line.strip()
 
-        content = ''    
-        with open(log_file, "r") as f:
-            content = content + f.read()
+        execute(['dotnet', Runtime.cscs_path, "--version"], onOutput)
 
-        os.remove(log_file) 
-
-        return content 
+        return result    
 
     except Exception as e:
         print(e)
@@ -115,10 +192,15 @@ def get_css_version():
 # -----------------
 def get_syntaxer_version():
     try:
-        proc = subprocess.Popen(['dotnet', Runtime.syntaxer_path], stdout=subprocess.PIPE, shell=True)
-        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
-            # 'CS-Syntaxer v3.1.0.0'
-            return line.strip().split(' ', 1)[-1][1:]
+        def onOutput(line): 
+            global result 
+            # 'CS-Syntaxer v3.1.0.0'    #first line only
+            if result == None:
+                result =  line.split(' ', 1)[-1][1:]
+
+        execute(['dotnet', Runtime.syntaxer_path], onOutput)
+
+        return result    
 
     except Exception as e:
         print(e)
@@ -126,11 +208,7 @@ def get_syntaxer_version():
 # =================================================================================
 # Sublime utils
 # =================================================================================
-def is_linux():
-    return os.name == 'posix' and platform.system() == 'Linux'
 
-def is_mac():
-    return os.name == 'posix' and platform.system() == 'Darwin'
 
 def which(file):
     try:
@@ -287,8 +365,13 @@ def check_environment(force_show_doc):
     current_css_version = get_css_version() 
     current_syntaxer_version = get_syntaxer_version() 
 
+    # print('current_dotnet_version: '+current_dotnet_version)
+    # print('current_css_version: '+current_css_version)
+    # print('current_syntaxer_version: '+current_syntaxer_version)
+    # print('Runtime.min_compatible_dotnet_version: '+Runtime.min_compatible_dotnet_version)
+    # print('Runtime.max_compatible_dotnet_version: '+Runtime.max_compatible_dotnet_version)
+        
     error = None
-
     if current_dotnet_version == None:
         error = ".NET is not found\n"
 

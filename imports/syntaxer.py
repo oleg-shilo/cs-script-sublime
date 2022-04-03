@@ -36,21 +36,7 @@ def is_linux():
 # intellisense queries
 # =================================================================================
 
-# -----------------
-def to_args(args):
-    # excellent discussion about why popen+shell doesn't work on Linux
-    # http://stackoverflow.com/questions/1253122/why-does-subprocess-popen-with-shell-true-work-differently-on-linux-vs-windows
-        
-    if is_linux() and not is_mac():
-        result = ''
-        last_arg = args[0]
-        # if last_arg.endswith('cscs.exe') or last_arg.endswith('syntaxer.exe') or last_arg.endswith('cscs.dll') or last_arg.endswith('syntaxer.dll'):
-        #     result = 'mono '
 
-        for arg in args:
-            result = result + '"'+arg+'" '
-        return [result.rstrip()]
-    return args
 # -----------------
 def start_syntax_server():
     try:
@@ -66,10 +52,13 @@ def start_syntax_server():
         args = to_args(args)
 
         start = time.time()
+
+        print('>'+args[0])
         subprocess.Popen(args, shell=True)
         print('> Syntaxer server started:', time.time()-start, 'seconds')
 
         sublime.status_message('> Syntaxer server started...')
+
     except Exception as ex:
         print('Cannot start syntaxer server', ex)
         pass
@@ -231,7 +220,7 @@ def popen_redirect_tofile(args, file):
     return subprocess.Popen(to_args(args), stdout=file, shell=True)
 
 def popen_tofile(args, file):
- return subprocess.Popen(args, stdout=file, shell=True)
+ return subprocess.Popen(to_args(args), stdout=file, shell=True)
 
 # -----------------
 def run_doc_in_cscs(args, view, handle_line, on_done=None, nuget_warning = True):
@@ -292,7 +281,7 @@ def run_cscs(args, handle_line, on_done=None, header=None):
             for a in args:
                 all_args.append(a)
 
-            proc = subprocess.Popen(all_args, stdout=subprocess.PIPE, shell=True)
+            proc = subprocess.Popen(to_args(all_args), stdout=subprocess.PIPE, shell=True)
 
             for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
                 handle_line(line.strip())

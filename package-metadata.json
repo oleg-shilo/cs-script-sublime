@@ -1,0 +1,1 @@
+{"platforms": ["*"], "url": "https://github.com/oleg-shilo/cs-script-sublime", "dependencies": [], "sublime_text": ">=3000", "version": "1.2.11", "description": "Sublime Text 3 plugin for CS-Script"}
