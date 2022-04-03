@@ -64,10 +64,10 @@ def execute(args, onLineOut, onStart=None):
 
         if onLineOut:
             for line in io.TextIOWrapper(p.stdout, encoding="utf-8"):
-                onLineOut(line.strip())
+                onLineOut(line)
 
             for line in io.TextIOWrapper(p.stderr, encoding="utf-8"):
-                onLineOut(line.strip())
+                onLineOut(line)
 
         p.wait()
         time.sleep(0.3)

@@ -19,47 +19,12 @@ from .imports.utils import * # should be imported after environ["PACKAGE_VERSION
 new_deployment = (not os.path.isdir(path.join(bin_dest+'cs-script_v'+version)))
 
 
-
 # -----------------
 bash_string = r'''#!/bin/bash
 dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help > /home/user/.config/sublime-text/Packages/User/cs-script/help.txt 
 '''
 # output = subprocess.check_output(bash_string, shell=True, executable='/bin/bash')
 # -----------------
-
-
-print('111111111111')
-# print(sublime.platform())
-
-# with open('/home/user/.config/sublime-text/Packages/User/cs-script/help.txt', 'w') as f:
-# subprocess.Popen(['dotnet', "/home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll", '-help', \
-#                                 '>', "/home/user/.config/sublime-text/Packages/User/cs-script/help.txt"], stdout=PIPE, shell=True)
-
-# os.system("dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help > /home/user/.config/sublime-text/Packages/User/cs-script/help.md")
-
-# log_file = open('/home/user/.config/sublime-text/Packages/User/cs-script/log.log', 'w')
-# my_out = log_file
-# my_err = log_file
-# command = ['dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help']
-
-command = ['dotnet', '/home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll', '/home/user/.config/sublime-text/Packages/User/cs-script/new_script.cs']
-# execute(command, print)
-
-# p = subprocess.Popen(command, stdout=my_out, stderr=my_err, shell=True).wait()
-# p = subprocess.Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)  
-# # for line in p.stdout:  
-# #  line = line.rstrip()  
-# out, error_msg = p.communicate()
-
-# print(get_dotnet_version())
-
-# print(error_msg)
-
-# os.system("dotnet /home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll -help > /home/user/.config/sublime-text/Packages/User/cs-script/help.md")
-    # subprocess.call(['dotnet "/home/user/.config/sublime-text/Packages/User/cs-script/cs-script_v1.2.3/cscs.dll"'], stdout=f)
-
-print('222222222222')
-
 
 if sys.version_info < (3, 3): raise RuntimeError('CS-Script.ST3 works with Sublime Text 3 only')
 
@@ -253,6 +218,7 @@ def print_config():
 
     start = time.time()
     subprocess.Popen(args, shell=True)
+    print('>', args)
     print('> Syntaxer server started:', time.time()-start, 'seconds')
 
 # -------------------------
@@ -276,6 +242,23 @@ def is_formatted(view):
 def mark_as_formatted(view):
     formatted_views[view.id()] = time.time()
 
+def is_sdk_available():
+    try:
+
+        def onOutput(line): 
+            global result 
+            result =  line.strip()
+
+        execute(['dotnet', "--list-sdks"], onOutput)
+
+        # 6.0.101 [C:\Program Files\dotnet\sdk]
+        # 6.0.201 [/snap/dotnet-sdk/158/sdk]
+        print(result)
+        return len(result) > 0    
+
+    except Exception as e:
+        print(e)
+        return False
 # =================================================================================
 # C#/CS-Script plugin "new script" service
 # =================================================================================
@@ -293,8 +276,15 @@ class csscript_new(sublime_plugin.TextCommand):
         if backup_file:
             content = '// The previous content of this file has been saved into: '+backup_file+' \n\n'
 
+        sample_type = ''
+        if is_sdk_available():
+            content += "//css_engine csc\n"
+            sample_type = 'toplevel'
+        else:
+            sample_type = 'console'
+
         subprocess\
-            .Popen(to_args(['dotnet', Runtime.cscs_path, '-new:toplevel', new_file_path]), stdout=subprocess.PIPE, shell=True)\
+            .Popen(to_args(['dotnet', Runtime.cscs_path, '-new:'+sample_type, new_file_path]), stdout=subprocess.PIPE, shell=True)\
             .wait()
 
         with open(new_file_path, "r") as f:
@@ -354,12 +344,9 @@ class csscript_css_help(sublime_plugin.TextCommand):
         file = os.path.join(plugin_dir, 'cs-script.help.txt')
 
         with open(file, "w") as out:
-            # subprocess.Popen(to_args(['dotnet', Runtime.cscs_path, '-?']), stdout=out, stderr=out, shell=True).wait()
+            def onOutput(line): out.write(line)
 
-            process = popen_redirect(['dotnet', Runtime.cscs_path, '-help']) 
-            while process.poll() is None: # may not read the last few lines of output
-                out.write(process.stdout.readline().decode('utf-8') + "\n")
-
+            execute(['dotnet', Runtime.cscs_path, '-help'], onOutput)
 
         if os.path.exists(file):
             sublime.active_window().open_file(file)
