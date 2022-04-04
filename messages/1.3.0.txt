@@ -4,6 +4,7 @@ Features/Changes:
 
 ### v1.3.0.0 changes
 - Embedded CS-Script engine ported to .NET 6 (.NET Core)
+- Added integration with the externally deployed engine and syntaxer
 
 
 *********************************************************************************
