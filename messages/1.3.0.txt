@@ -1,0 +1,13 @@
+Features/Changes:
+
+## It is a port of the previous release (v1.2.11) to .NET 6 edition of CS-Script.
+
+### v1.3.0.0 changes
+- Embedded CS-Script engine ported to .NET 6 (.NET Core)
+
+
+*********************************************************************************
+NOTE: Due to the ST3 plugin hosting limitations some Python modules need to be fully
+re-initialized during upgrades. Thus it is recommended to restart Sublime Text
+before you start using the CS-Script plugin.
+*********************************************************************************

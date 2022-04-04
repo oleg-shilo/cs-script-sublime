@@ -7,6 +7,8 @@ The MIT License (MIT)
 
 Copyright (c) 2016 Oleg Shilo
 
+https://github.com/oleg-shilo/syntaxer.core
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -27,10 +29,12 @@ SOFTWARE.
 
 
 
-### CS-Script (cscs.exe)
+### CS-Script 
 The MIT License (MIT)
 
-Copyright (c) 2016 oleg-shilo
+Copyright (c) 2018 oleg-shilo
+
+https://github.com/oleg-shilo/cs-script
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

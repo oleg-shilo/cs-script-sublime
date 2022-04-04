@@ -12,7 +12,7 @@ import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.2.3'  # build 0
+version = '1.3.0'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
