@@ -8,10 +8,6 @@ The true C# intellisense solution based on CS-Script and Roslyn.
 **Required minimum system configuration:**
  * .NET:       v6.˟
  * CS-Script:  v4.4.2
-
-**Detected system configuration:**
-  * .NET:       v6.0.101
-  * CS-Script:  v4.4.2.0
  
 *******************************************************
 
