@@ -8,11 +8,12 @@ import sublime
 import sublime_plugin
 import subprocess
 import shutil
+import signal
 import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.3.0'  # build 0
+version = '1.3.1'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
@@ -1262,8 +1263,14 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
     def run(self, edit):
         
         if csscript_execute_and_redirect.running_process:
-            print("Previous C# script is still running...")
-            return
+            if os.name == 'nt':
+                try:
+                    os.kill(p.pid, signal.SIGKILL)
+                except:
+                    pass
+            else:
+                print("Previous C# script is still running...")
+                return
 
         sublime.status_message('Executing script "'+self.view.file_name()+'"')
 
@@ -1285,7 +1292,10 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
                 if line != '':
                     output_view_append(out_panel, line)
 
-            execute(['dotnet', Runtime.cscs_path, script], on_process_output_line, on_process_start)
+            try:
+                execute(['dotnet', Runtime.cscs_path, script], on_process_output_line, on_process_start)
+            except:
+                print("Error Encountered while running script")
 
             output_view_write_line(out_panel, "[Execution completed]")
             
@@ -1375,9 +1385,11 @@ class csscript_execute_and_wait(CodeViewTextCommand):
         if not path.exists(Runtime.cscs_path):
             print('Error: cannot find CS-Script launcher - ', Runtime.cscs_path)
         else:
-            execute_in_terminal(['dotnet', Runtime.cscs_path, '-l', curr_doc])
+            execute_in_terminal(['dotnet', Runtime.cscs_path, '-l', '-wait', curr_doc])
 
             return
+
+            # older algorithm that may need to be reactivated in the future if the current one stops working on Linux
             if os.name == 'nt':
                 os.system('dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"')
             else:

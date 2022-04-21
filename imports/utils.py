@@ -81,8 +81,11 @@ def execute_in_terminal(args):
         
         all_args = ''
         for arg in args:
-            all_args = all_args + '"'+arg+'" '
-        all_args = all_args.rstrip()
+            if arg.find(' ') == -1:
+                all_args += ' '+arg
+            else:
+                all_args += ' "'+arg+'"'
+        all_args = all_args.strip()
 
         if os.name == 'nt':
             os.system(all_args)
