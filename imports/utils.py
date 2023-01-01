@@ -112,7 +112,7 @@ class Runtime():
     syntaxer_path = None
     min_compatible_css_version = '4.4.2.0'
     min_compatible_dotnet_version = '6.0.0'
-    max_compatible_dotnet_version = '7.0.0'
+    max_compatible_dotnet_version = '8.0.0'
     syntaxer_port = None
     pluginVersion = None
     new_deployment = False
@@ -198,8 +198,8 @@ def get_syntaxer_version():
         def onOutput(line): 
             global result 
             # 'CS-Syntaxer v3.1.0.0'    #first line only
-            if result == None:
-                result =  line.split(' ', 1)[-1][1:]
+            if line.startswith('CS-Syntaxer'):
+                result =  line.split(' ', 1)[-1][1:].strip()
 
         execute(['dotnet', Runtime.syntaxer_path], onOutput)
 
