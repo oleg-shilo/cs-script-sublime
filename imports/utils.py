@@ -1,7 +1,7 @@
 import os
 import io
 import codecs
-import sys
+import sys 
 import sublime
 import sublime_plugin
 import subprocess
@@ -195,15 +195,16 @@ def get_css_version():
 # -----------------
 def get_syntaxer_version():
     try:
+
         def onOutput(line): 
-            global result 
+            global result
             # 'CS-Syntaxer v3.1.0.0'    #first line only
             if line.startswith('CS-Syntaxer'):
-                result =  line.split(' ', 1)[-1][1:].strip()
+                result = line.split(' ', 1)[-1][1:].strip()
 
         execute(['dotnet', Runtime.syntaxer_path], onOutput)
 
-        return result    
+        return result
 
     except Exception as e:
         print(e)
@@ -323,13 +324,15 @@ def find_file_view(file_name):
         pattern = pattern.lower()
 
     for view in sublime.active_window().views():
-        viewPath = os.path.normpath(view.file_name())
+        if view.file_name():
+            viewPath = os.path.normpath(view.file_name())
 
-        if is_win:
-            viewPath = viewPath.lower()
+            if is_win:
+                viewPath = viewPath.lower()
 
-        if pattern == viewPath:
-            return view
+            if pattern == viewPath:
+                return view
+            
     return None
 # -----------------
 def active_primary_view():
@@ -420,8 +423,9 @@ def check_environment(force_show_doc):
         deployment_info = os.path.join(plugin_dir, 'deployment.md')
         with open(deployment_info, "w", encoding="utf-8") as f: f.write(report)
         sublime.active_window().open_file(deployment_info)
-
+ 
 # -----------------
+
 def show_console():
     sublime.active_window().run_command("show_panel", {"panel": "console", "toggle": False})
 # -----------------

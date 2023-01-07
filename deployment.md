@@ -1,10 +1,10 @@
 *************** CS-Script ******************
-.NET:      v6.0.101
-CS-Script: v4.4.3.0
-Syntaxer:  v4.4.3.0
+.NET:      v7.0.100
+CS-Script: v4.6.2.0
+Syntaxer:  v3.1.2.0
 ---
-CS-Script (script engine): C:\Users\oleg.shilo\AppData\Roaming\Sublime Text\Packages\User\cs-script\cs-script_v1.3.0\cscs.dll
-Syntaxer (C# syntax server): C:\Users\oleg.shilo\AppData\Roaming\Sublime Text\Packages\User\cs-script\syntaxer_v1.3.0\syntaxer.dll
+CS-Script (script engine): C:\ProgramData\chocolatey\lib\cs-script\tools\cscs.dll
+Syntaxer (C# syntax server): C:\ProgramData\chocolatey\lib\cs-syntaxer\tools\syntaxer.dll
 ---
 
 
