@@ -8,12 +8,12 @@ import sublime
 import sublime_plugin
 import subprocess
 import shutil
-import signal
+import signal        
 import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.3.2'  # build 0
+version = '1.3.3'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
@@ -41,8 +41,8 @@ def save_settings():
 
 def on_plugin_loaded():
     Runtime.init(version, new_deployment)
-    check_environment(False);
     print_config()
+    sublime.set_timeout_async(lambda: check_environment(False))
 
 # -------------------------
 class CodeViewTextCommand(sublime_plugin.TextCommand):
