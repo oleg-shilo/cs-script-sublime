@@ -40,7 +40,7 @@
         "command": "csscript_show_output",
     },
     {
-        "caption": "cs-script: plugin settings",
+        "caption": "cs-script: Plugin settings",
         "command": "csscript_show_settings",
     },
     {
