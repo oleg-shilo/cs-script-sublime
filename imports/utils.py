@@ -13,6 +13,7 @@ from os import path
 
 plugin_dir = path.dirname(path.dirname(__file__))
 plugin_name = path.basename(plugin_dir)
+plugin_settings_file = path.join(path.dirname(plugin_dir), "User", "cs-script.sublime-settings")
 new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'new_script.cs')
 bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script'+ os.sep)
 bin_src = path.join(plugin_dir, 'bin')
@@ -112,7 +113,7 @@ class Runtime():
     syntaxer_path = None
     min_compatible_css_version = '4.4.2.0'
     min_compatible_dotnet_version = '6.0.0'
-    max_compatible_dotnet_version = '8.0.0'
+    max_compatible_dotnet_version = '9.0.0'
     syntaxer_port = None
     pluginVersion = None
     new_deployment = False
@@ -371,11 +372,11 @@ def check_environment(force_show_doc):
     current_css_version = get_css_version() 
     current_syntaxer_version = get_syntaxer_version() 
 
-    # print('current_dotnet_version: '+current_dotnet_version)
-    # print('current_css_version: '+current_css_version)
-    # print('current_syntaxer_version: '+current_syntaxer_version)
-    # print('Runtime.min_compatible_dotnet_version: '+Runtime.min_compatible_dotnet_version)
-    # print('Runtime.max_compatible_dotnet_version: '+Runtime.max_compatible_dotnet_version)
+    print('current_dotnet_version: '+current_dotnet_version)
+    print('current_css_version: '+current_css_version)
+    print('current_syntaxer_version: '+current_syntaxer_version)
+    print('Runtime.min_compatible_dotnet_version: '+Runtime.min_compatible_dotnet_version)
+    print('Runtime.max_compatible_dotnet_version: '+Runtime.max_compatible_dotnet_version)
         
     error = None
     if current_dotnet_version == None:
