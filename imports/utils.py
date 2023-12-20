@@ -13,6 +13,7 @@ from os import path
 
 plugin_dir = path.dirname(path.dirname(__file__))
 plugin_name = path.basename(plugin_dir)
+plugin_settings_file = path.join(path.dirname(plugin_dir), "User", "cs-script.sublime-settings")
 new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'new_script.cs')
 bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script'+ os.sep)
 bin_src = path.join(plugin_dir, 'bin')

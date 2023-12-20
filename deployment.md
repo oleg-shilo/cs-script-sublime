@@ -1,6 +1,6 @@
 *************** CS-Script ******************
-.NET:      v7.0.307
-CS-Script: v4.8.1.0
+.NET:      v7.0.100
+CS-Script: v4.6.2.0
 Syntaxer:  v3.1.2.0
 ---
 CS-Script (script engine): C:\ProgramData\chocolatey\lib\cs-script\tools\cscs.dll

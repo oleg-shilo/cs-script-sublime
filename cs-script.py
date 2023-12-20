@@ -8,12 +8,14 @@ import sublime
 import sublime_plugin
 import subprocess
 import shutil
-import signal        
+import signal
 import threading
 from subprocess import Popen, PIPE, STDOUT
 from os import path
 
-version = '1.3.3'  # build 0
+# https://www.sublimetext.com/docs/1/api-reference
+
+version = '1.3.4'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
@@ -569,7 +571,15 @@ class csscript_listener(sublime_plugin.EventListener):
         return completions
 
 # =================================================================================
-# CS-Script code formatter service
+# CS-Script plugin settings
+# =================================================================================
+class csscript_show_settings(sublime_plugin.TextCommand):
+    # -----------------
+    def run(self, edit):
+        self.view.window().open_file(plugin_settings_file)
+
+# =================================================================================
+# CS-Script code show cs-script config
 # =================================================================================
 class csscript_show_config(sublime_plugin.TextCommand):
     # -----------------

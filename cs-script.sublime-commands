@@ -40,6 +40,10 @@
         "command": "csscript_show_output",
     },
     {
+        "caption": "cs-script: Plugin settings",
+        "command": "csscript_show_settings",
+    },
+    {
         "caption": "cs-script: Check Deployment",
         "command": "csscript_check_deployment",
     },
