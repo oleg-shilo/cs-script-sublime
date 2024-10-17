@@ -15,7 +15,7 @@ from os import path
 
 # https://www.sublimetext.com/docs/1/api-reference
 
-version = '1.3.4'  # build 0
+version = '1.3.5'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
@@ -203,26 +203,14 @@ def print_config():
     print('----------------')
     print('cscs: ', Runtime.cscs_path)
     syntaxer_print_config()
+    auto_start = settings().get('server_autostart', True)
     print('syntaxcheck_on_save: ', settings().get('syntaxcheck_on_save', True))
-    print('server_autostart: ', settings().get('server_autostart', True))
+    print('server_autostart: ', auto_start)
     print('----------------')
-    # start_syntax_server()
-
-    sublime.status_message('Starting syntaxer server...')
-
-    args = ['dotnet']
-    args.append(Runtime.syntaxer_path)
-    args.append('-listen')
-    args.append('-port:'+str(Runtime.syntaxer_port))
-    args.append('-timeout:3000')
-    args.append('-client:{0}'.format(os.getpid()))
-    args.append('-cscs_path:{0}'.format(Runtime.cscs_path))
-    args = to_args(args)
-
-    start = time.time()
-    subprocess.Popen(args, shell=True)
-    print('>', args)
-    print('> Syntaxer server started:', time.time()-start, 'seconds')
+    
+    if auto_start:
+        start_syntax_server()
+        start_cssbuild_server()
 
 # -------------------------
 from .imports.syntaxer import *
@@ -371,7 +359,6 @@ class settings_listener(sublime_plugin.EventListener):
             os.environ['CSSCRIPT_SYNTAXER_PORT'] = str(Runtime.syntaxer_port)
             settings().add_on_change("cscs_path", self.callback)
             settings().add_on_change("server_port", self.on_port_changed)
-
 
     def on_port_changed(self):
 
@@ -704,7 +691,7 @@ class csscript_resolve_using(CodeViewTextCommand):
                             line  = self.view.substr(region)
                             if not line.startswith("//"):
                                 # cannot use 'self.view.replace(self.edit...' as edit is already invalid
-                                # so need to start a new command that ctreats 'edit'; Remember, 'edit' cannot be created from code
+                                # so need to start a new command that creates 'edit'; Remember, 'edit' cannot be created from code
                                 # self.view.replace(self.edit, sublime.Region(start, start), 'using '+items[index]+';'+'\n')
                                 region = str(region.begin())+','+str(region.begin())
                                 replacement = 'using '+items[index]+';'+'\n'
@@ -909,6 +896,8 @@ class csscript_syntax_check(CodeViewTextCommand):
 
         view = self.view
 
+        start_cssbuild_server()
+
         sublime.status_message('Checking syntax of "'+view.file_name()+'"')
 
         if view.is_dirty() and not 'skip_saving' in args.keys():
@@ -930,9 +919,7 @@ class csscript_syntax_check(CodeViewTextCommand):
                 output_view_write_line(out_panel, "Resolving NuGet packages may take time...")
             csscript_syntax_check.clear_errors()
 
-            
             proc = popen_redirect(['dotnet', Runtime.cscs_path, '-l', "-check", curr_doc])
-
 
             first_result = True
             for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
@@ -1272,6 +1259,8 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
     # -----------------
     def run(self, edit):
         
+        start_cssbuild_server()
+
         if csscript_execute_and_redirect.running_process:
             if os.name == 'nt':
                 try:
@@ -1312,38 +1301,6 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
             csscript_execute_and_redirect.running_process = None
             return
 
-
-            # process = subprocess.Popen(to_args(['dotnet', Runtime.cscs_path, script]),  stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-            
-            # output_view_write_line(out_panel, '[Started pid: '+str(process.pid)+']', True)
-            
-            # csscript_execute_and_redirect.running_process = process
-
-            # def process_line(output, ignore_empty = False):
-            #     try:
-            #         output = output.decode('utf-8').rstrip()
-            #         if not ignore_empty or output != '':
-            #     except UnicodeDecodeError:
-            #         append_output('<Decoding error. You may want to adjust script output encoding in settings.>')
-            #         # process.terminate()
-
-            # while process.poll() is None: # may not read the last few lines of output
-            #     output = process.stdout.readline()
-            #     process_line(output)
-
-            # while (True): # drain any remaining data
-            #     try:
-            #         output = process.stdout.readline()
-            #         if output == b'':
-            #             output = process.stderr.readline()
-            #             break;
-            #         process_line(output, ignore_empty=True)
-            #     except :
-            #         pass
-
-            # csscript_execute_and_redirect.running_process = None
-            # output_view_write_line(out_panel, "[Execution completed]")
-
         #must be done in a separate thread otherwise line rendering is suspended until process exits
         sublime.set_timeout_async(run, 10)
 
@@ -1366,6 +1323,7 @@ class csscript_build_exe(CodeViewTextCommand):
             self.do()
     # -----------------
     def do(self):
+        start_cssbuild_server()
         script_file = self.view.file_name()
         pre, ext = os.path.splitext(script_file)
         exe_file = pre + '.exe'
@@ -1388,7 +1346,8 @@ class csscript_build_exe(CodeViewTextCommand):
 class csscript_execute_and_wait(CodeViewTextCommand):
     # -----------------
     def run(self, edit):
-        
+        start_cssbuild_server()
+
         sublime.active_window().run_command("save")
         curr_doc = self.view.file_name()
 

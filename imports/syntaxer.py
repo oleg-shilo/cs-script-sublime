@@ -53,7 +53,7 @@ def start_syntax_server():
 
         start = time.time()
 
-        print('>'+args[0])
+        # print('>'+args[0])
         subprocess.Popen(args, shell=True)
         print('> Syntaxer server started:', time.time()-start, 'seconds')
 
@@ -61,6 +61,30 @@ def start_syntax_server():
 
     except Exception as ex:
         print('Cannot start syntaxer server', ex)
+        pass
+
+def start_cssbuild_server():
+    try:
+        # it's important to start the server explicitly because if we build the script that triggers start of the server implicitly the build will never
+        # finish since a child console process will be alive and popen_redirect(...) will hang trying to read whom the child STDOUT
+        # So start the server and then try to build/check as a separate process.
+        sublime.status_message('Starting CS-Script build server...')
+
+        args = ['dotnet']
+        args.append(Runtime.cscs_path)
+        args.append('-server:start')
+        args = to_args(args)
+
+        start = time.time()
+
+        # print('>'+args[0])
+        subprocess.Popen(args, shell=True)
+        print('> CS-Script build server started:', time.time()-start, 'seconds')
+
+        sublime.status_message('> CS-Script build server started...')
+
+    except Exception as ex:
+        print('Cannot start CS-Script build server', ex)
         pass
 
 # Start the server as soon as possible. If the server is already running the next call will do nothing.

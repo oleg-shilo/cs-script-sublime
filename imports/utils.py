@@ -69,7 +69,6 @@ def execute(args, onLineOut, onStart=None):
 
             for line in io.TextIOWrapper(p.stderr, encoding="utf-8"):
                 onLineOut(line)
-
         p.wait()
         time.sleep(0.3)
                 
@@ -145,16 +144,6 @@ class Runtime():
         Runtime.syntaxer_path = os.path.expandvars(Runtime.syntaxer_path)
         Runtime.cscs_path = os.path.expandvars(Runtime.cscs_path)
     
-        # if cscs_path is not set we can try to discover local deployment. if none found then set it to the default        
-        # css_root = os.environ["CSSCRIPT_ROOT"]
-        # if  cscs_path == None and path.exists(css_root):
-        #     cscs_path = path.join(css_root, "cscs.dll");
-            
-        # if cscs_path == None:
-        #     Runtime.cscs_path = path.join(bin_dest, 'cs-script_v'+version, 'cscs.dll')
-        # elif cscs_path:
-        #     Runtime.cscs_path = os.path.abspath(os.path.expandvars(cscs_path))
-
         if Runtime.cscs_path:
             settings().set('cscs_path', Runtime.cscs_path.replace('cs-script_v'+version, 'cs-script_v'+version_envar_pattern))
             settings().set('syntaxer_path', Runtime.syntaxer_path.replace('syntaxer_v'+version, 'syntaxer_v'+version_envar_pattern))
@@ -210,6 +199,7 @@ def get_syntaxer_version():
     except Exception as e:
         print(e)
         return None
+        
 # =================================================================================
 # Sublime utils
 # =================================================================================
@@ -238,9 +228,17 @@ def get_output_view(name):
     view = sublime.active_window().find_output_panel(name)
     if not view:
         view = sublime.active_window().create_output_panel(name)
-        view.assign_syntax('Packages/C#/Build.tmLanguage')
-        # view.assign_syntax('Packages/Batch File/Batch File.tmLanguage')
-        # view.assign_syntax('Packages/Text/Plain text.tmLanguage')
+        # view.assign_syntax('Packages/C#/Build.tmLanguage')
+        # Check if the desired syntax is available
+        syntax_files = sublime.find_resources('Build.tmLanguage')
+
+        if syntax_files:
+            # Syntax file is found, set it to the view
+            view.set_syntax_file(syntax_files[0])
+            # sublime.message_dialog("Build syntax assigned.")
+        else:
+            view.assign_syntax('Packages/Text/Plain text.tmLanguage')
+
     return view
 # -----------------
 def output_view_show(name):
@@ -396,8 +394,8 @@ def check_environment(force_show_doc):
 
     if error:
         report = '*************** CS-Script ******************\n' +\
-                'ERROR: \n' + error +\
-                '\nEnvironment requirements and setup instructions:\n' +\
+                'WARNING/ERROR: \n' + error +\
+                'Environment requirements and setup instructions:\n' +\
                 '  https://github.com/oleg-shilo/cs-script/wiki/CLI-Environment-Specification\n' +\
                 '**********************************************'        
         print(report)

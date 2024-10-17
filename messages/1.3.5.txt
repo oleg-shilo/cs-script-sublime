@@ -1,0 +1,12 @@
+Features/Changes:
+
+- Updated embedded script enging v4.8.18.0 (.NET 8.0)
+- Added auto-start option for CS-Script build server.
+- Added work around for cscs.dll assembly hanging in the memory and freezing ST3 because of the cscs's child process (build server)
+- Improved error messages.
+
+*********************************************************************************
+NOTE: Due to the ST3 plugin hosting limitations some Python modules need to be fully
+re-initialized during upgrades. Thus it is recommended to restart Sublime Text
+before you start using the CS-Script plugin.
+*********************************************************************************
