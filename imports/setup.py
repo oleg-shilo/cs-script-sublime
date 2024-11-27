@@ -24,7 +24,6 @@ def save_settings():
     return sublime.save_settings("cs-script.sublime-settings")
 
 
-
 # =================================================================================
 # C#/CS-Script setup service
 # =================================================================================
@@ -51,12 +50,11 @@ class csscript_setup(sublime_plugin.EventListener):
         required_clr = '6.˟'
         incompatible_clr = True
 
-        current_dotnet_version = get_dotnet_version()
-        
+        current_dotnet_version = get_dotnet_version() 
         if current_dotnet_version == None:
             detected_clr = '.NET:       <not found>'
             detected_css = 'CS-Script:  <unknown>'
-
+ 
         elif LooseVersion(current_dotnet_version) <  LooseVersion(Runtime.min_compatible_dotnet_version) or LooseVersion(current_dotnet_version) >=  LooseVersion(Runtime.max_compatible_dotnet_version):
             detected_clr = '.NET:       v'+str(current_dotnet_version) + ' <incompatible> - required v'+required_clr
             detected_css = 'CS-Script:  <unknown>'
@@ -70,8 +68,8 @@ class csscript_setup(sublime_plugin.EventListener):
 
         if incompatible_clr:
             clr_install = """
-The required version of .NET runtime cannot be detected on the system.
-Please visit .NET website (https://dotnet.microsoft.com) and follow the instructions on how to install the required version (v"""+required_clr+""").
+The required version of .NET SDK cannot be detected on the system.
+Please visit .NET website (https://dotnet.microsoft.com/en-us/download) and follow the instructions on how to install the required version (v"""+required_clr+""").
 """
         
         return template.replace('{req_clr}', required_clr) \

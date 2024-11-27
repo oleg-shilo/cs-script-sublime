@@ -15,12 +15,11 @@ from os import path
 
 # https://www.sublimetext.com/docs/1/api-reference
 
-version = '1.3.5'  # build 0
+version = '1.4.0'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
 new_deployment = (not os.path.isdir(path.join(bin_dest+'cs-script_v'+version)))
-
 
 # -----------------
 bash_string = r'''#!/bin/bash
@@ -61,9 +60,61 @@ class CodeViewTextCommand(sublime_plugin.TextCommand):
             return True
 
 # -------------------------
+def get_syntaxer_compatible_css():
+    retval = {'css': '', 'syntaxer': ''}
+    def onOutput(line): 
+        nonlocal retval 
+        if line.strip().startswith("css:"): 
+            retval['css'] = line.strip().replace('css:', '').strip()
+
+        elif line.strip().startswith("syntaxer:"): 
+            retval['syntaxer'] = line.strip().replace('syntaxer:', '').strip()
+
+    execute(['syntaxer_', '-detect'], onOutput)
+    return retval
+    
+def integrate_environment1():
+    file = os.path.join(plugin_dir, 'detection`.txt')
+
+    info = get_syntaxer_compatible_css()
+
+    if info['syntaxer'] != '' and info['css'] != '':
+        settings().set('cscs_path', info['css'])
+        settings().set('syntaxer_path', info['syntaxer'])
+        save_settings()
+        content = """Detected files:
+  Script engine: """+info['css']+"""
+  Syntaxer: """+info['syntaxer']+"""
+
+The plugin settings have been updated.
+You may need to restart Sublime Text for the changes to take effect.
+"""
+
+    # elif info['syntaxer'] == '' and info['css'] == '':
+    else:
+        content = """The plugin has not detected any CS-Script installation on your system. 
+
+You may want to install CS-Script so you can manage its updates independently from the plugin releases.
+Installation:
+  - Script engine: `dotnet tool install --global cs-script.cli`
+  - Syntaxer: `dotnet tool install --global cs-syntaxer`
+
+Note: you need to have .NET SDK installed for using CS-Script (see https://dotnet.microsoft.com/en-us/download) 
+"""
+
+    with open(file, "w", encoding="utf-8") as f:
+        f.write(content)
+    sublime.active_window().open_file(file)
+
+class csscript_detect_css(sublime_plugin.TextCommand):
+    def run(self, edit):
+        integrate_environment()
+
+# -------------------------
 class csscript_check_deployment(sublime_plugin.TextCommand):
     def run(self, edit):
         check_environment(True)
+
 # -------------------------
 def clear_old_versions_but(version):
 
@@ -172,7 +223,6 @@ def deploy_shadow_dir(src_subdir, dest_subdir):
     dest_dir = bin_dest
     if dest_subdir:
         dest_dir = path.join(dest_dir, dest_subdir)
-
     
     if path.exists(dest_dir):
         return
@@ -200,12 +250,15 @@ showTooltipOverGutter = settings().get('show_tooltip_over_gutter', True)
 # -------------------------
 def print_config():
 
-    print('----------------')
-    print('cscs: ', Runtime.cscs_path)
-    syntaxer_print_config()
     auto_start = settings().get('server_autostart', True)
-    print('syntaxcheck_on_save: ', settings().get('syntaxcheck_on_save', True))
-    print('server_autostart: ', auto_start)
+    check_on_save = settings().get('syntaxcheck_on_save', True)
+    
+    print('----------------')
+    print('cs-script config')
+    print('  cscs: ', Runtime.cscs_path)
+    syntaxer_print_config()
+    print('  syntaxcheck_on_save: ', check_on_save)
+    print('  server_autostart: ', auto_start)
     print('----------------')
     
     if auto_start:
@@ -550,7 +603,7 @@ class csscript_listener(sublime_plugin.EventListener):
                 if len(parts) == 2:
                     completions.append((parts[0], parts[1]))
             else:
-                error += line.replace('<error>', '')
+                error += line.replace('<error>', '').replace('\r', '') + '\n'
 
         if error:
             print(error)
