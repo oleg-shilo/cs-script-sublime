@@ -53,7 +53,7 @@ def start_syntax_server():
 
         start = time.time()
 
-        # print('>'+args[0])
+        print('> Starting syntaxer: '+ " ".join(args) + '')
         subprocess.Popen(args, shell=True)
         # print('> Syntaxer server started:', time.time()-start, 'seconds')
 
