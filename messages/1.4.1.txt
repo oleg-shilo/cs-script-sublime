@@ -1,0 +1,9 @@
+Features/Changes:
+
+- Auto-update of CS-Script: added attempting to detect external CS-Script installation if the configured one is not present.
+
+*********************************************************************************
+NOTE: Due to the ST3 plugin hosting limitations some Python modules need to be fully
+re-initialized during upgrades. Thus it is recommended to restart Sublime Text
+before you start using the CS-Script plugin.
+*********************************************************************************
