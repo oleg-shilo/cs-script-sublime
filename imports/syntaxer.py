@@ -23,9 +23,9 @@ out_panel = 'CS-Script'
 # Runtime.cscs_path = path.join(plugin_dir, 'bin', 'cscs.exe')
 
 def syntaxer_print_config():
-    print('syntaxer_cscs: ', Runtime.cscs_path)
-    print('syntaxer_path: ', Runtime.syntaxer_path)
-    print('syntaxer_port: ', Runtime.syntaxer_port)
+    print('  syntaxer_cscs:', Runtime.cscs_path)
+    print('  syntaxer_path:', Runtime.syntaxer_path)
+    print('  syntaxer_port:', Runtime.syntaxer_port)
 
 
 def is_linux():
@@ -55,7 +55,7 @@ def start_syntax_server():
 
         # print('>'+args[0])
         subprocess.Popen(args, shell=True)
-        print('> Syntaxer server started:', time.time()-start, 'seconds')
+        # print('> Syntaxer server started:', time.time()-start, 'seconds')
 
         sublime.status_message('> Syntaxer server started...')
 
@@ -79,7 +79,7 @@ def start_cssbuild_server():
 
         # print('>'+args[0])
         subprocess.Popen(args, shell=True)
-        print('> CS-Script build server started:', time.time()-start, 'seconds')
+        # print('> CS-Script build server started:', time.time()-start, 'seconds')
 
         sublime.status_message('> CS-Script build server started...')
 
@@ -204,7 +204,6 @@ def send_formatting_request(file, location):
     return send_syntax_request(file, location, 'format')
 # -----------------
 def send_completion_request(file, location):
-    print('send_completion_request')
     return send_syntax_request(file, location, 'completion')
 # -----------------
 def send_tooltip_request(file, location, hint, short_hinted_tooltips=True):

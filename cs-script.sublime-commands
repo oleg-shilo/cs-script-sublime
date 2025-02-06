@@ -16,6 +16,10 @@
         "command": "csscript_build_exe",
     },
     {
+        "caption": "cs-script: Detect external CS-Script",
+        "command": "csscript_detect_css",
+    },
+    {
         "caption": "cs-script: Check Syntax",
         "command": "csscript_syntax_check",
     },

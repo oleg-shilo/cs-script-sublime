@@ -15,12 +15,11 @@ from os import path
 
 # https://www.sublimetext.com/docs/1/api-reference
 
-version = '1.3.5'  # build 0
+version = '1.4.1'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
 new_deployment = (not os.path.isdir(path.join(bin_dest+'cs-script_v'+version)))
-
 
 # -----------------
 bash_string = r'''#!/bin/bash
@@ -61,9 +60,15 @@ class CodeViewTextCommand(sublime_plugin.TextCommand):
             return True
 
 # -------------------------
+class csscript_detect_css(sublime_plugin.TextCommand):
+    def run(self, edit):
+        integrate_environment()
+
+# -------------------------
 class csscript_check_deployment(sublime_plugin.TextCommand):
     def run(self, edit):
         check_environment(True)
+
 # -------------------------
 def clear_old_versions_but(version):
 
@@ -172,7 +177,6 @@ def deploy_shadow_dir(src_subdir, dest_subdir):
     dest_dir = bin_dest
     if dest_subdir:
         dest_dir = path.join(dest_dir, dest_subdir)
-
     
     if path.exists(dest_dir):
         return
@@ -200,15 +204,25 @@ showTooltipOverGutter = settings().get('show_tooltip_over_gutter', True)
 # -------------------------
 def print_config():
 
-    print('----------------')
-    print('cscs: ', Runtime.cscs_path)
-    syntaxer_print_config()
     auto_start = settings().get('server_autostart', True)
-    print('syntaxcheck_on_save: ', settings().get('syntaxcheck_on_save', True))
-    print('server_autostart: ', auto_start)
+    check_on_save = settings().get('syntaxcheck_on_save', True)
+    
+    print('----------------')
+    print('cs-script config')
+    print('  cscs: ', Runtime.cscs_path)
+    syntaxer_print_config()
+    print('  syntaxcheck_on_save: ', check_on_save)
+    print('  server_autostart: ', auto_start)
     print('----------------')
     
-    if auto_start:
+    
+    if not os.path.exists(Runtime.cscs_path) :  # not checking Runtime.syntaxer_path since it's not a critical dependency
+        print('Checking for CS-Script updates...')
+        integrate_environment()
+        if auto_start:
+            start_syntax_server()
+            start_cssbuild_server()
+    elif auto_start:
         start_syntax_server()
         start_cssbuild_server()
 
@@ -550,7 +564,7 @@ class csscript_listener(sublime_plugin.EventListener):
                 if len(parts) == 2:
                     completions.append((parts[0], parts[1]))
             else:
-                error += line.replace('<error>', '')
+                error += line.replace('<error>', '').replace('\r', '') + '\n'
 
         if error:
             print(error)

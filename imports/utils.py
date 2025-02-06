@@ -111,17 +111,12 @@ class Runtime():
     cscs_path = None
     syntaxer_path = None
     min_compatible_css_version = '4.4.2.0'
-    min_compatible_dotnet_version = '6.0.0'
-    max_compatible_dotnet_version = '9.0.0'
+    min_compatible_dotnet_version = '6.*'
+    max_compatible_dotnet_version = '9.*'
     syntaxer_port = None
     pluginVersion = None
     new_deployment = False
     is_dotnet_core = True
-
-    def integrate_with_choco():
-        print(path.join(os.environ["ChocolateyInstall"],'lib','cs-script', 'tools', 'cscs.dll'))
-        print(path.join(os.environ["ChocolateyInstall"],'lib','cs-syntaxer', 'tools', 'syntaxer.dll'))
-
 
     def init(version, new_deployment):
 
@@ -364,24 +359,83 @@ def get_saved_doc(view, location = -1):
 # -----------------
 is_deployment_problem_reported= False
 
+# -------------------------
+external_css_deployment_prompt = """
+It is recommended that you install CS-Script so you can manage its updates independently from 
+the plugin releases (e.g. update with new .NET version).
+
+Installation:
+1. Install tools
+  - Script engine: `dotnet tool install --global cs-script.cli`
+  - Syntaxer: `dotnet tool install --global cs-syntaxer`
+
+2. Configure tools
+   Execute plugin command "cs-script: Detect external CS-Script"
+
+Note: you need to have .NET SDK installed for using CS-Script (see https://dotnet.microsoft.com/en-us/download) 
+"""
+
+def get_syntaxer_compatible_css():
+    retval = {'css': '', 'syntaxer': ''}
+    def onOutput(line): 
+        nonlocal retval 
+        if line.strip().startswith("css:"): 
+            retval['css'] = line.strip().replace('css:', '').strip()
+
+        elif line.strip().startswith("syntaxer:"): 
+            retval['syntaxer'] = line.strip().replace('syntaxer:', '').strip()
+
+    execute(['syntaxer', '-detect'], onOutput)
+    return retval
+
+def integrate_environment():
+    file = os.path.join(plugin_dir, 'detection.txt')
+
+    info = get_syntaxer_compatible_css()
+
+    if info['syntaxer'] != '' or info['css'] != '':
+        settings().set('cscs_path', info['css'])
+        settings().set('syntaxer_path', info['syntaxer'])
+        save_settings()
+        content = """Detected files:
+  Script engine: 
+    """+info['css']+"""
+  Syntaxer: 
+    """+info['syntaxer']+"""
+
+The plugin settings have been updated.
+You need to restart Sublime Text for the changes to take effect.
+""" 
+    else:
+        content = """CS-Script Plugin
+The plugin has not detected any CS-Script installation on your system. 
+
+"""+ '\n' + external_css_deployment_prompt
+
+
+    with open(file, "w", encoding="utf-8") as f:
+        f.write(content)
+    sublime.active_window().open_file(file)
+ 
+
+# ----------------- 
 def check_environment(force_show_doc):
 
     current_dotnet_version = get_dotnet_version()
     current_css_version = get_css_version() 
     current_syntaxer_version = get_syntaxer_version() 
-
-    print('current_dotnet_version: '+current_dotnet_version)
-    print('current_css_version: '+current_css_version)
-    print('current_syntaxer_version: '+current_syntaxer_version)
-    print('Runtime.min_compatible_dotnet_version: '+Runtime.min_compatible_dotnet_version)
-    print('Runtime.max_compatible_dotnet_version: '+Runtime.max_compatible_dotnet_version)
         
+    dotnet_major_ver = LooseVersion(current_dotnet_version).version[0]
+    dotnet_major_min_ver = LooseVersion(Runtime.min_compatible_dotnet_version).version[0]
+    dotnet_major_max_ver = LooseVersion(Runtime.max_compatible_dotnet_version).version[0]
+
     error = None
     if current_dotnet_version == None:
         error = ".NET is not found\n"
 
-    elif LooseVersion(current_dotnet_version) <  LooseVersion(Runtime.min_compatible_dotnet_version) \
-         or LooseVersion(current_dotnet_version) >=  LooseVersion(Runtime.max_compatible_dotnet_version):
+    elif  dotnet_major_ver < dotnet_major_min_ver or dotnet_major_ver > dotnet_major_max_ver:
+        print('min_compatible_dotnet_version: '+Runtime.min_compatible_dotnet_version)
+        print('max_compatible_dotnet_version: '+Runtime.max_compatible_dotnet_version)
         error = "Installed .NET version is incompatible.\n"
 
     if current_css_version == None:
@@ -391,12 +445,19 @@ def check_environment(force_show_doc):
         error = (error if error else '') + "Syntaxer is not found.\n"
 
     report = ''    
-
+    
     if error:
+        
+        print('----------------')
+        print('cs-script runtime')
+        print('  dotnet v' + current_dotnet_version)
+        print('  css v' + current_css_version)
+        print('  syntaxer v'+ current_syntaxer_version)
         report = '*************** CS-Script ******************\n' +\
                 'WARNING/ERROR: \n' + error +\
                 'Environment requirements and setup instructions:\n' +\
                 '  https://github.com/oleg-shilo/cs-script/wiki/CLI-Environment-Specification\n' +\
+                external_css_deployment_prompt +'\n' +\
                 '**********************************************'        
         print(report)
     else:
@@ -409,12 +470,14 @@ def check_environment(force_show_doc):
                  'Syntaxer (C# syntax server): ' + Runtime.syntaxer_path + '\n'\
                  '---\n'\
                  '\n'\
-                 '\n'\
                  'Environment requirements and setup instructions:\n'\
                  '  https://github.com/oleg-shilo/cs-script/wiki/CLI-Environment-Specification\n'\
                  '\n'\
                  'Use "right-click > CS-Script > Settings > Plugin Config" if you need to change'\
-                 ' the location of the integrated CS-Script engine and syntaxer\n'\
+                 ' the location of the integrated CS-Script engine and syntaxer manually.\n'+\
+                 '\n'+\
+                 '======================\n'+\
+                  external_css_deployment_prompt +'\n' +\
                  '**********************************************'
 
 
