@@ -15,7 +15,7 @@ from os import path
 
 # https://www.sublimetext.com/docs/1/api-reference
 
-version = '1.4.1'  # build 0
+version = '1.4.2'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
@@ -451,7 +451,7 @@ class csscript_listener(sublime_plugin.EventListener):
     def on_post_text_command(self, view, command_name, args):
         if command_name == 'drag_select':
             if is_output_panel(view):
-                if 'by' in args.keys() and args['by'] == 'words':
+                if 'by' in args.keys() and args['by'] == 'words': # double-click
                     try:
                         point = view.sel()[0].begin()
                         line_region = view.line(point)

@@ -336,12 +336,15 @@ def active_primary_view():
     return None
 # -----------------
 def is_output_panel(view):
-
     # return view == sublime.active_window().active_panel() # not reliable
-    if view == sublime.active_window().find_output_panel('exec'):
+    if view == sublime.active_window().find_output_panel('CS-Script'):
         return True
 
-    return view.file_name() == None and view.name() == ''
+    # CS-Script panel lookup, last defense 
+    name = view.name()
+    file_name = view.file_name()
+
+    return file_name == None and (name == '' or name == None or name.startswith("Script: "))
 
 # -----------------
 def get_saved_doc(view, location = -1):
