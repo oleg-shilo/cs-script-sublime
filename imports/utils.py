@@ -76,9 +76,10 @@ def execute(args, onLineOut, onStart=None):
         print(e)
         return None
 
+import threading
+
 def execute_in_terminal(args):
     try:
-        
         all_args = ''
         for arg in args:
             if arg.find(' ') == -1:
@@ -88,18 +89,22 @@ def execute_in_terminal(args):
         all_args = all_args.strip()
 
         if os.name == 'nt':
-            os.system(all_args)
+            # subprocess.Popen should be OK but for some reason it's not starting the console host
+            # so starting os.system in a separate thread instead
+
+            # import shlex
+            # subprocess.Popen(shlex.split(all_args), shell=True)
+
+            thread = threading.Thread(target=os.system, args=(all_args,), daemon=False)
+            thread.start()
         else:
             # Linux and Mac
             env = os.environ.copy()
-
 
             command = "bash -c \" {0} ; exec bash\"".format(all_args)
             args =[TerminalSelector.get(), '-e', command]
 
             subprocess.Popen(args)
-
-
 
     except Exception as e:
         print(e)

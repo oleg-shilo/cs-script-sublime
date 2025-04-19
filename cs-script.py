@@ -1370,28 +1370,26 @@ class csscript_execute_and_wait(CodeViewTextCommand):
         else:
             execute_in_terminal(['dotnet', Runtime.cscs_path, '-l', '-wait', curr_doc])
 
-            return
-
             # older algorithm that may need to be reactivated in the future if the current one stops working on Linux
-            if os.name == 'nt':
-                os.system('dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"')
-            else:
-                # Linux and Mac
-                env = os.environ.copy()
-                env['SCRIPT_FILE'] = curr_doc
+            # if os.name == 'nt':
+            #     os.system('dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"')
+            # else:
+            #     # Linux and Mac
+            #     env = os.environ.copy()
+            #     env['SCRIPT_FILE'] = curr_doc
 
-                cwd = os.path.dirname(curr_doc)
+            #     cwd = os.path.dirname(curr_doc)
 
-                css_command = ' dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"'
+            #     css_command = ' dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"'
 
-                command = "bash -c \"{0} ; exec bash\"".format(css_command)
-                args =[TerminalSelector.get(), '-e', command]
+            #     command = "bash -c \"{0} ; exec bash\"".format(css_command)
+            #     args =[TerminalSelector.get(), '-e', command]
 
-                if 'NUGET_INCOMPATIBLE_HOST' in env:
-                    del env['NUGET_INCOMPATIBLE_HOST']
+            #     if 'NUGET_INCOMPATIBLE_HOST' in env:
+            #         del env['NUGET_INCOMPATIBLE_HOST']
 
-                print(args)
-                subprocess.Popen(args, cwd=cwd, env=env)
+            #     print(args)
+            #     subprocess.Popen(args, cwd=cwd, env=env)
 
 # =================================================================================
 # CS-Script go-to-next-result service
