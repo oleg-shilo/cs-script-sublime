@@ -15,7 +15,7 @@ from os import path
 
 # https://www.sublimetext.com/docs/1/api-reference
 
-version = '1.4.2'  # build 0
+version = '1.4.3'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
