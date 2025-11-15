@@ -1,10 +1,10 @@
 *************** CS-Script ******************
-.NET:      v9.0.100
-CS-Script: v4.8.20.0
-Syntaxer:  v3.1.3.0
+.NET:      v10.0.100
+CS-Script: v4.12.0.0
+Syntaxer:  v3.2.5.0
 ---
-CS-Script (script engine): C:\ProgramData\chocolatey\lib\cs-script\tools\cscs.dll
-Syntaxer (C# syntax server): C:\ProgramData\chocolatey\lib\cs-syntaxer\tools\syntaxer.dll
+CS-Script (script engine): C:\Users\oleg\.dotnet\tools\.store\cs-script.cli\4.12.0\cs-script.cli\4.12.0\tools\net10.0\any\cscs.dll
+Syntaxer (C# syntax server): C:\Users\oleg\.dotnet\tools\.store\cs-syntaxer\3.2.5\cs-syntaxer\3.2.5\tools\net10.0\any\syntaxer.dll
 ---
 
 Environment requirements and setup instructions:

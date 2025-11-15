@@ -117,7 +117,7 @@ class Runtime():
     syntaxer_path = None
     min_compatible_css_version = '4.4.2.0'
     min_compatible_dotnet_version = '6.*'
-    max_compatible_dotnet_version = '9.*'
+    max_compatible_dotnet_version = '10.*'
     syntaxer_port = None
     pluginVersion = None
     new_deployment = False
@@ -444,7 +444,7 @@ def check_environment(force_show_doc):
     elif  dotnet_major_ver < dotnet_major_min_ver or dotnet_major_ver > dotnet_major_max_ver:
         print('min_compatible_dotnet_version: '+Runtime.min_compatible_dotnet_version)
         print('max_compatible_dotnet_version: '+Runtime.max_compatible_dotnet_version)
-        error = "Installed .NET version is incompatible.\n"
+        error = "Installed .NET version might be incompatible.\n"
 
     if current_css_version == None:
         error = (error if error else '') + "CS-Script is not found.\n"
