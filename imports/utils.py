@@ -376,6 +376,9 @@ Installation:
 1. Install tools
   - Script engine: `dotnet tool install --global cs-script.cli`
   - Syntaxer: `dotnet tool install --global cs-syntaxer`
+  If the binaries are locked you can release them by these commands:
+  css -list kill *
+  syntaxer -list kill *
 
 2. Configure tools
    Execute plugin command "cs-script: Detect external CS-Script"
