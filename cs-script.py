@@ -15,7 +15,7 @@ from os import path
 
 # https://www.sublimetext.com/docs/1/api-reference
 
-version = '1.4.4'  # build 0
+version = '1.4.5'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
@@ -622,7 +622,7 @@ class csscript_format_code(CodeViewTextCommand):
                 formatted_code = parts[1]
 
                 new_text_location = to_text_pos(formatted_code, new_file_location)
-                new_text = formatted_code.replace('\r', '')
+                new_text = formatted_code.replace('\r', '').replace('\n\n\n', '\n\n')
 
                 self.view.replace(edit, sublime.Region(0, self.view.size()), new_text)
                 # with open(self.view.file_name(), "w") as file:
