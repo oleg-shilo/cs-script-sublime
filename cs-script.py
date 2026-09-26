@@ -15,7 +15,7 @@ from os import path
 
 # https://www.sublimetext.com/docs/1/api-reference
 
-version = '1.4.1'  # build 0
+version = '1.4.2'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
@@ -75,7 +75,11 @@ def clear_old_versions_but(version):
     if new_deployment:
         try:
             if os.name == 'nt':
-                os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is runningif os.name == 'nt':
+                # Reactivate killing VBCSCompiler if keeping it alive creates any deployment problems.
+                # Note, VBCSCompiler is managed by the csc.exe compiler and it resurrects the compiler process if it was terminated for whatever 
+                # reason (e.g. it crashed, it was idle for longer than its internal timeout).
+                # Also note that VBCSCompiler is only used for compilation but not for running the .NET apps.
+                # os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is runningif os.name == 'nt':
                 os.system('taskkill /f /im syntaxer.exe')     # stop syntaxer
         except:
             pass
