@@ -1,6 +1,6 @@
 Features/Changes:
 
-- Fixed problem with navigating to the syntax error on double-click in the output panel
+- Bumping compatible versions of dependency packages
 
 *********************************************************************************
 NOTE: Due to the ST3 plugin hosting limitations some Python modules need to be fully

@@ -15,7 +15,7 @@ from os import path
 
 # https://www.sublimetext.com/docs/1/api-reference
 
-version = '1.4.2'  # build 0
+version = '1.4.6'  # build 0
 os.environ["PACKAGE_VERSION"] = version
 
 from .imports.utils import * # should be imported after environ["PACKAGE_VERSION"] is set
@@ -455,7 +455,7 @@ class csscript_listener(sublime_plugin.EventListener):
     def on_post_text_command(self, view, command_name, args):
         if command_name == 'drag_select':
             if is_output_panel(view):
-                if 'by' in args.keys() and args['by'] == 'words':
+                if 'by' in args.keys() and args['by'] == 'words': # double-click
                     try:
                         point = view.sel()[0].begin()
                         line_region = view.line(point)
@@ -626,7 +626,7 @@ class csscript_format_code(CodeViewTextCommand):
                 formatted_code = parts[1]
 
                 new_text_location = to_text_pos(formatted_code, new_file_location)
-                new_text = formatted_code.replace('\r', '')
+                new_text = formatted_code.replace('\r', '').replace('\n\n\n', '\n\n')
 
                 self.view.replace(edit, sublime.Region(0, self.view.size()), new_text)
                 # with open(self.view.file_name(), "w") as file:
@@ -1310,6 +1310,7 @@ class csscript_execute_and_redirect(CodeViewTextCommand):
                     output_view_append(out_panel, line)
 
             try:
+                print("exec: dotnet " + Runtime.cscs_path +" "+ script)
                 execute(['dotnet', Runtime.cscs_path, script], on_process_output_line, on_process_start)
             except:
                 print("Error Encountered while running script")
@@ -1374,28 +1375,26 @@ class csscript_execute_and_wait(CodeViewTextCommand):
         else:
             execute_in_terminal(['dotnet', Runtime.cscs_path, '-l', '-wait', curr_doc])
 
-            return
-
             # older algorithm that may need to be reactivated in the future if the current one stops working on Linux
-            if os.name == 'nt':
-                os.system('dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"')
-            else:
-                # Linux and Mac
-                env = os.environ.copy()
-                env['SCRIPT_FILE'] = curr_doc
+            # if os.name == 'nt':
+            #     os.system('dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"')
+            # else:
+            #     # Linux and Mac
+            #     env = os.environ.copy()
+            #     env['SCRIPT_FILE'] = curr_doc
 
-                cwd = os.path.dirname(curr_doc)
+            #     cwd = os.path.dirname(curr_doc)
 
-                css_command = ' dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"'
+            #     css_command = ' dotnet "' + Runtime.cscs_path + '" -l -wait "'+ curr_doc + '"'
 
-                command = "bash -c \"{0} ; exec bash\"".format(css_command)
-                args =[TerminalSelector.get(), '-e', command]
+            #     command = "bash -c \"{0} ; exec bash\"".format(css_command)
+            #     args =[TerminalSelector.get(), '-e', command]
 
-                if 'NUGET_INCOMPATIBLE_HOST' in env:
-                    del env['NUGET_INCOMPATIBLE_HOST']
+            #     if 'NUGET_INCOMPATIBLE_HOST' in env:
+            #         del env['NUGET_INCOMPATIBLE_HOST']
 
-                print(args)
-                subprocess.Popen(args, cwd=cwd, env=env)
+            #     print(args)
+            #     subprocess.Popen(args, cwd=cwd, env=env)
 
 # =================================================================================
 # CS-Script go-to-next-result service

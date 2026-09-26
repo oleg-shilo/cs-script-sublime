@@ -76,9 +76,10 @@ def execute(args, onLineOut, onStart=None):
         print(e)
         return None
 
+import threading
+
 def execute_in_terminal(args):
     try:
-        
         all_args = ''
         for arg in args:
             if arg.find(' ') == -1:
@@ -88,18 +89,22 @@ def execute_in_terminal(args):
         all_args = all_args.strip()
 
         if os.name == 'nt':
-            os.system(all_args)
+            # subprocess.Popen should be OK but for some reason it's not starting the console host
+            # so starting os.system in a separate thread instead
+
+            # import shlex
+            # subprocess.Popen(shlex.split(all_args), shell=True)
+
+            thread = threading.Thread(target=os.system, args=(all_args,), daemon=False)
+            thread.start()
         else:
             # Linux and Mac
             env = os.environ.copy()
-
 
             command = "bash -c \" {0} ; exec bash\"".format(all_args)
             args =[TerminalSelector.get(), '-e', command]
 
             subprocess.Popen(args)
-
-
 
     except Exception as e:
         print(e)
@@ -112,7 +117,7 @@ class Runtime():
     syntaxer_path = None
     min_compatible_css_version = '4.4.2.0'
     min_compatible_dotnet_version = '6.*'
-    max_compatible_dotnet_version = '9.*'
+    max_compatible_dotnet_version = '10.*'
     syntaxer_port = None
     pluginVersion = None
     new_deployment = False
@@ -336,12 +341,15 @@ def active_primary_view():
     return None
 # -----------------
 def is_output_panel(view):
-
     # return view == sublime.active_window().active_panel() # not reliable
-    if view == sublime.active_window().find_output_panel('exec'):
+    if view == sublime.active_window().find_output_panel('CS-Script'):
         return True
 
-    return view.file_name() == None and view.name() == ''
+    # CS-Script panel lookup, last defense 
+    name = view.name()
+    file_name = view.file_name()
+
+    return file_name == None and (name == '' or name == None or name.startswith("Script: "))
 
 # -----------------
 def get_saved_doc(view, location = -1):
@@ -368,6 +376,9 @@ Installation:
 1. Install tools
   - Script engine: `dotnet tool install --global cs-script.cli`
   - Syntaxer: `dotnet tool install --global cs-syntaxer`
+  If the binaries are locked you can release them by these commands:
+  css -list kill *
+  syntaxer -list kill *
 
 2. Configure tools
    Execute plugin command "cs-script: Detect external CS-Script"
@@ -436,7 +447,7 @@ def check_environment(force_show_doc):
     elif  dotnet_major_ver < dotnet_major_min_ver or dotnet_major_ver > dotnet_major_max_ver:
         print('min_compatible_dotnet_version: '+Runtime.min_compatible_dotnet_version)
         print('max_compatible_dotnet_version: '+Runtime.max_compatible_dotnet_version)
-        error = "Installed .NET version is incompatible.\n"
+        error = "Installed .NET version might be incompatible.\n"
 
     if current_css_version == None:
         error = (error if error else '') + "CS-Script is not found.\n"
@@ -696,4 +707,3 @@ class busy_indicator():
         busy_indicator.active = False
         sublime.status_message('')
         sublime.active_window().active_view().hide_popup()
-
