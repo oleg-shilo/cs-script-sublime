@@ -1,6 +1,6 @@
 Features/Changes:
 
-- updated deployment configuration prompt
+- #7: every Roslyn build server on the machine) on first install/upgrade
 
 *********************************************************************************
 NOTE: Due to the ST3 plugin hosting limitations some Python modules need to be fully
