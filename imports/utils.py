@@ -8,7 +8,7 @@ import subprocess
 import time
 import platform
 from subprocess import Popen, PIPE, STDOUT
-from distutils.version import LooseVersion, StrictVersion
+from .version_compat import LooseVersion, StrictVersion
 from os import path
 
 plugin_dir = path.dirname(path.dirname(__file__))
@@ -17,6 +17,8 @@ plugin_settings_file = path.join(path.dirname(plugin_dir), "User", "cs-script.su
 new_file_path = path.join(path.dirname(plugin_dir), 'User', 'cs-script', 'new_script.cs')
 bin_dest = path.join(path.dirname(plugin_dir), 'User', 'cs-script'+ os.sep)
 bin_src = path.join(plugin_dir, 'bin')
+
+# -----------------------------------
 
 def settings():
     return sublime.load_settings("cs-script.sublime-settings")

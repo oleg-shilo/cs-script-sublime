@@ -10,7 +10,7 @@ import subprocess
 import threading
 from os import path
 from subprocess import Popen, PIPE, STDOUT
-from distutils.version import LooseVersion, StrictVersion
+from .version_compat import LooseVersion, StrictVersion
 # -------------------------
 from .utils import *
 from .syntaxer import *

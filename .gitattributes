@@ -1,0 +1,19 @@
+# Normalize line endings for anything Git detects as text
+* text=auto
+
+# Force LF for files that must never have CRLF
+*.sh   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+
+# Force CRLF for Windows-only scripts
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# Binary files: don't touch
+*.png  binary
+*.jpg  binary
+*.zip  binary
+*.pdf  binary

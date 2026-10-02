@@ -1,0 +1,13 @@
+Features/Changes:
+
+- Fixed problem with the Python host of the latest version of ST having package `distutils` removed.
+  Problematic line: 
+  `from distutils.version import LooseVersion, StrictVersion` 
+  is replaced with the `version_compat` polyfill: 
+  `from .version_compat import LooseVersion, StrictVersion`
+
+*********************************************************************************
+NOTE: Due to the ST3 plugin hosting limitations some Python modules need to be fully
+re-initialized during upgrades. Thus it is recommended to restart Sublime Text
+before you start using the CS-Script plugin.
+*********************************************************************************
