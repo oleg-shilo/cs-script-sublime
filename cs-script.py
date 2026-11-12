@@ -79,8 +79,12 @@ def clear_old_versions_but(version):
                 # Note, VBCSCompiler is managed by the csc.exe compiler and it resurrects the compiler process if it was terminated for whatever 
                 # reason (e.g. it crashed, it was idle for longer than its internal timeout).
                 # Also note that VBCSCompiler is only used for compilation but not for running the .NET apps.
-                # os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is runningif os.name == 'nt':
-                os.system('taskkill /f /im syntaxer.exe')     # stop syntaxer
+                # os.system('taskkill /f /im VBCSCompiler.exe') # stop roslyn server if it is running if os.name == 'nt':
+
+                # Stoping syntaxer, which is the plugin's own C# syntax provider service. Killing the process allows the plugin to redeploy the 
+                # service file if it is updated in the new package. The service process will be started on the plugin's first request to the syntax provider. 
+                # So no need to start it after the process termination.
+                os.system('taskkill /f /im syntaxer.exe')     
         except:
             pass
 
